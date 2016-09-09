@@ -19,6 +19,7 @@ $ ./bin/elasticsearch &
 
 # 2) Install profile
 git clone https://github.com/datarasa/datacatalog.git
+
 finally go through the installation steps
 
 
