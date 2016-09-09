@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Data Catalog Taxonomy feature.
+ */
+
+include_once 'data_catalog_taxonomy.features.inc';

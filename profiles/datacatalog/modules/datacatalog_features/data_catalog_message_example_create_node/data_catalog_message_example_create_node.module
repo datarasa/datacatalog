@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Data Catalog Example - Create node feature.
+ */
+
+include_once 'data_catalog_message_example_create_node.features.inc';

@@ -1,0 +1,8 @@
+name = furp Test1
+description = furp Test1
+core = 7.x
+package = Features
+dependencies[] = features_user_role_plus
+dependencies[] = node
+features[features_api][] = api:2
+features[user_role_plus][] = anonymous user

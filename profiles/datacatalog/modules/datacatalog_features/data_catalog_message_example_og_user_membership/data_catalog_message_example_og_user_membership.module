@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Data Catalog Example - OG user membership feature.
+ */
+
+include_once 'data_catalog_message_example_og_user_membership.features.inc';

@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Data Catalog Community feature.
+ */
+
+include_once 'data_catalog_node_group.features.inc';

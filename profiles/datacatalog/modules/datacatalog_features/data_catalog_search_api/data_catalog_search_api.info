@@ -1,0 +1,13 @@
+name = Data Catalog Search API
+core = 7.x
+package = Features
+dependencies[] = search_api
+dependencies[] = search_api_elasticsearch_elastica
+features[features_api][] = api:2
+features[search_api_index][] = business_processes
+features[search_api_index][] = communities
+features[search_api_index][] = messages
+features[search_api_index][] = sources
+features[search_api_index][] = users
+features[search_api_index][] = wiki
+features[search_api_server][] = datacatalog_es

@@ -1,0 +1,135 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Module implementing content subscription customization.
+ */
+ 
+/**
+ * Implements hook_menu().
+ */
+function datacatalog_subscription_menu() {
+  $items = array();
+  $items['og_cstm_subscrptn'] = array(
+    'type'             => MENU_CALLBACK,
+    'page callback'    => 'cstm_grp_subscrptn',
+	'access arguments' => array('access content'),
+  );
+  $items['nd_cstm_subscrptn'] = array(
+    'type'             => MENU_CALLBACK,
+    'page callback'    => 'cstm_nod_subscrptn',
+	'access arguments' => array('access content'),
+  );
+  return $items;
+}
+
+function cstm_grp_subscrptn(){
+  if(isset($_REQUEST["uid"]) and $_REQUEST["uid"]!="") {
+    $uid = $_REQUEST["uid"];
+  }else {
+    global $user;
+    $uid = $user->uid;
+  }
+  $type = $_REQUEST["action"];
+  $gid = $_REQUEST["gid"];
+
+  $group_type = 'node'; 
+  $entity_type = 'user'; 
+  $values = array(
+    'entity_type' => 'user',
+    'entity' => $uid,
+    'field_name' => FALSE,
+    'state' => 1,
+  );
+  switch ($type) {
+    case 'subscribe':
+    $values['state'] = 2;
+    og_group($group_type, $gid, $values);
+    break;
+    case  'approve':
+    $values['state'] = 1;
+    og_group($group_type, $gid, $values);
+    break;
+    case 'delete':
+    og_ungroup($group_type, $gid, $entity_type, $uid);
+    break;
+	default:
+    break;
+  }
+  /* ES re-indexing */
+  // Clear field cache for the node.
+  cache_clear_all('field:node:' . $gid, 'cache_field');
+  // Reindex the node.
+  search_api_track_item_change('node', array($gid));
+  echo $type;
+}
+
+function cstm_nod_subscrptn(){
+  global $user;
+  $uid = $user->uid;
+  $type = $_REQUEST["action"];
+  $nid = $_REQUEST["nid"];
+  $args = array(0 => 'node', 1 => 'nid', 2 => $nid, 3 => -1, 4 => $uid, 5 => 1, 6 => 1, 7 => 1);
+  switch ($type) {
+    case 'sub':
+    call_user_func_array('subscriptions_write_subscription', $args);
+ 	cstm_nod_subscrptn_node_update($nid, $uid, $type);
+    break;
+    case  'unsub':
+    subscriptions_delete($args['4'], $args['0'], $args['1'], $args['2'], $args['3']); 
+ 	cstm_nod_subscrptn_node_update($nid, $uid, $type);
+    break;
+	default:
+    break;
+  }
+  /* ES re-indexing */
+  // Clear field cache for the node.
+  cache_clear_all('field:node:' . $nid, 'cache_field');
+  // Reindex the node.
+  search_api_track_item_change('node', array($nid));
+  echo $type;
+}
+
+function cstm_nod_subscrptn_node_update($nid, $sub_uid, $action){
+  $src_data = node_load($nid);
+  if($action == 'sub') {
+    $sub_uid  = array("uid" => $sub_uid);
+    $src_data->field_subscribed_["und"][] = $sub_uid;  
+  }elseif($action == 'unsub') {
+	foreach($src_data->field_subscribed_["und"] as $index => $user) {
+       if($user['uid'] == $sub_uid) {
+	     unset($src_data->field_subscribed_["und"][$index]);
+		 break;
+	   }
+	}
+  }
+  field_attach_update('node', $src_data);
+  entity_get_controller('node')->resetCache(array($src_data->nid));
+}
+
+function chk_usr_nd_subscrptn($uid,$nid) {
+  foreach (array(
+    db_query("SELECT sid, module, field, value, author_uid, send_interval, send_updates, send_comments FROM {subscriptions} WHERE module = :module AND field = :field AND value = :value AND recipient_uid = :recipient_uid", array(
+      ':module' => 'node',
+      ':field' => 'nid',
+      ':value' => $nid,
+      ':recipient_uid' => $uid
+    ), array('fetch' => PDO::FETCH_ASSOC)),
+    db_query("SELECT sid, module, field, value, author_uid, send_interval, send_updates, send_comments FROM {subscriptions} WHERE module = :module AND field <> :field AND recipient_uid = :recipient_uid", array(
+      ':module' => 'node',
+      ':field' => 'nid',
+      ':recipient_uid' => $uid
+    ), array('fetch' => PDO::FETCH_ASSOC)),
+  ) as $result) {
+    foreach ($result as $s) {
+      $subscriptions[$s['field']][$s['value']][$s['author_uid']] = $s;
+    }
+  }
+  if (is_array($subscriptions)) {
+     return 1;
+  }
+  else {
+     return 0;
+  }
+}

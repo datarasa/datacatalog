@@ -1,0 +1,14 @@
+name = Data Catalog Taxonomy
+core = 7.x
+package = Configuration
+dependencies[] = data_catalog_seo
+dependencies[] = features
+dependencies[] = strongarm
+dependencies[] = taxonomy
+features[ctools][] = strongarm:strongarm:1
+features[features_api][] = api:2
+features[taxonomy][] = community_tags
+features[taxonomy][] = meta_data_tags
+features[taxonomy][] = tags
+features_exclude[variable][] = pathauto_taxonomy_term_community_tags_pattern
+features_exclude[variable][] = pathauto_taxonomy_term_tags_pattern

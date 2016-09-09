@@ -1,0 +1,256 @@
+; Packaging information for datacatalog
+name = "datacatalog"
+description = ""
+exclusive = "1"
+core = "7.x"
+distribution_name = "DataCatalog"
+; ----------
+; Dependencies
+; ----------
+; Administration
+dependencies[] = actions_permissions
+dependencies[] = admin_menu
+dependencies[] = admin_menu_toolbar
+; Chaos tool suite
+dependencies[] = bulk_export
+dependencies[] = ctools
+dependencies[] = ctools_ajax_sample
+dependencies[] = ctools_custom_content
+dependencies[] = page_manager
+dependencies[] = stylizer
+dependencies[] = views_content
+; Content authoring
+dependencies[] = ajax_markup
+dependencies[] = bueditor
+dependencies[] = markdowneditor
+; Core
+dependencies[] = block
+dependencies[] = book
+dependencies[] = color
+dependencies[] = comment
+dependencies[] = contact
+dependencies[] = dashboard
+dependencies[] = field
+dependencies[] = field_sql_storage
+dependencies[] = field_ui
+dependencies[] = file
+dependencies[] = filter
+dependencies[] = help
+dependencies[] = image
+dependencies[] = list
+dependencies[] = menu
+dependencies[] = node
+dependencies[] = number
+dependencies[] = options
+dependencies[] = path
+dependencies[] = php
+dependencies[] = rdf
+dependencies[] = search
+dependencies[] = shortcut
+dependencies[] = statistics
+dependencies[] = syslog
+dependencies[] = system
+dependencies[] = taxonomy
+dependencies[] = text
+dependencies[] = user
+; Datacatalog
+dependencies[] = datacatalog_blocks
+dependencies[] = datacatalog_general
+dependencies[] = datacatalog_subscription
+; Date/Time
+dependencies[] = date
+dependencies[] = date_api
+dependencies[] = date_popup
+dependencies[] = date_tools
+dependencies[] = date_views
+; Development
+dependencies[] = fapi_validation
+dependencies[] = feedback
+dependencies[] = profiler_builder
+dependencies[] = profiler_builder_extras
+; Features extra
+dependencies[] = fe_block
+; Fields
+dependencies[] = conditional_fields
+dependencies[] = custom_add_another
+dependencies[] = entityreference
+dependencies[] = entityreference_prepopulate
+dependencies[] = field_collection
+dependencies[] = field_group
+dependencies[] = field_hidden
+dependencies[] = field_validation
+dependencies[] = field_validation_extras
+dependencies[] = field_validation_ui
+dependencies[] = inline_entity_form
+dependencies[] = maxlength
+dependencies[] = node_reference
+dependencies[] = references
+dependencies[] = textformatter
+dependencies[] = textformatter_contrib
+dependencies[] = user_reference
+dependencies[] = user_role_field
+; Flags
+dependencies[] = flag
+; HybridAuth
+dependencies[] = hybridauth
+; Input filters
+dependencies[] = markdown
+; Menu
+dependencies[] = void_menu
+; Message
+dependencies[] = message
+dependencies[] = message_notify
+dependencies[] = message_subscribe
+dependencies[] = message_ui
+; Node export
+dependencies[] = node_export
+dependencies[] = node_export_book
+dependencies[] = node_export_features
+dependencies[] = node_export_features_ui
+; OAuth
+dependencies[] = oauth_common
+dependencies[] = oauth_common_providerui
+; Organic groups
+dependencies[] = og
+dependencies[] = og_context
+dependencies[] = og_extras
+dependencies[] = og_ui
+; Other
+dependencies[] = administerusersbyrole
+dependencies[] = ajax_comments
+dependencies[] = asaf
+dependencies[] = backup_migrate
+dependencies[] = block_class
+dependencies[] = book_explorer
+dependencies[] = chain_menu_access
+dependencies[] = ctools_automodal
+dependencies[] = ctools_automodal_admin
+dependencies[] = diff
+dependencies[] = entity
+dependencies[] = entity_token
+dependencies[] = fast_404
+dependencies[] = field_collection_table
+dependencies[] = field_collection_views
+dependencies[] = libraries
+dependencies[] = mail_edit
+dependencies[] = menu_attributes
+dependencies[] = menu_block
+dependencies[] = menu_item_visibility
+dependencies[] = menu_token
+;dependencies[] = mymodule
+dependencies[] = node_page_disable
+dependencies[] = pathauto
+dependencies[] = quicktabs
+dependencies[] = quicktabs_tabstyles
+dependencies[] = roleassign
+;dependencies[] = scrollbar
+dependencies[] = strongarm
+dependencies[] = subform
+dependencies[] = taxonomy_creation_date
+dependencies[] = taxonomy_deep_index
+dependencies[] = taxonomy_deep_index_admin
+dependencies[] = token
+dependencies[] = vocabulary
+dependencies[] = vocabularyaccess
+; Panels
+dependencies[] = panels
+dependencies[] = panels_ipe
+dependencies[] = panels_mini
+dependencies[] = panels_node
+; Rules
+dependencies[] = rules
+dependencies[] = rules_admin
+; Search
+dependencies[] = search_api
+dependencies[] = search_api_elasticsearch
+dependencies[] = search_api_elasticsearch_elastica
+dependencies[] = search_api_facetapi
+dependencies[] = search_api_multi
+dependencies[] = search_api_views
+dependencies[] = search_log
+; Search Toolkit
+dependencies[] = facetapi
+; Services
+dependencies[] = services
+dependencies[] = services_definition
+dependencies[] = services_views
+; Services - authentication
+dependencies[] = services_basic_auth
+dependencies[] = services_oauth
+; Services - servers
+dependencies[] = rest_server
+; Subscriptions
+;dependencies[] = subscriptions
+;dependencies[] = subscriptions_content
+;dependencies[] = subscriptions_mail
+;dependencies[] = subscriptions_taxonomy
+;dependencies[] = subscriptions_ui
+; Taxonomy
+dependencies[] = term_authoring_info
+; Taxonomy Tools
+dependencies[] = taxonomy_tools
+dependencies[] = taxonomy_tools_copier
+dependencies[] = taxonomy_tools_publisher
+dependencies[] = taxonomy_tools_role_access
+; UUID
+dependencies[] = uuid
+; User interface
+dependencies[] = jquery_update
+dependencies[] = multicolumncheckboxesradios
+dependencies[] = superfish
+; Views
+dependencies[] = alpha_pagination
+dependencies[] = better_exposed_filters
+dependencies[] = entityreference_filter
+;dependencies[] = footable
+dependencies[] = views
+dependencies[] = views_autocomplete_filters
+dependencies[] = views_bootstrap
+dependencies[] = views_bulk_operations
+dependencies[] = views_contextual_filters_or
+dependencies[] = views_data_export
+dependencies[] = views_data_export_json
+dependencies[] = views_distinct
+dependencies[] = views_load_more
+dependencies[] = views_php
+dependencies[] = views_tree
+dependencies[] = views_ui
+; jQuery Load
+dependencies[] = jquery_ajax_load
+; Features
+dependencies[] = features
+dependencies[] = features_builder
+dependencies[] = features_builder_default
+dependencies[] = alpha_pagination_sample_view
+dependencies[] = data_catalog_field_collection
+dependencies[] = data_catalog_fields
+dependencies[] = data_catalog_media
+;dependencies[] = data_catalog_menu
+dependencies[] = data_catalog_message_example_create_comment
+dependencies[] = data_catalog_message_example_create_node
+dependencies[] = data_catalog_message_example_og_post_in_group
+dependencies[] = data_catalog_message_example_og_user_membership
+dependencies[] = data_catalog_message_example_user_register
+dependencies[] = data_catalog_node_article
+dependencies[] = data_catalog_node_book
+dependencies[] = data_catalog_node_business_process
+dependencies[] = data_catalog_node_group
+dependencies[] = data_catalog_node_page
+dependencies[] = data_catalog_node_panel
+dependencies[] = data_catalog_node_source
+dependencies[] = data_catalog_og_features_permission_node_group
+dependencies[] = data_catalog_og_membership_type_og_membership_type_og_membership_type_default
+dependencies[] = data_catalog_panels
+dependencies[] = data_catalog_rules
+dependencies[] = data_catalog_search_api
+dependencies[] = data_catalog_seo
+dependencies[] = data_catalog_services
+;dependencies[] = data_catalog_site
+dependencies[] = data_catalog_taxonomy
+;dependencies[] = data_catalog_users
+dependencies[] = data_catalog_views
+dependencies[] = data_catalog_menu
+dependencies[] = message_example
+dependencies[] = message_og_example
+dependencies[] = message_subscribe_ui
+

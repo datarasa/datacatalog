@@ -1,0 +1,16 @@
+name = Data Catalog Basic page
+core = 7.x
+package = Content
+dependencies[] = data_catalog_fields
+dependencies[] = data_catalog_seo
+dependencies[] = features
+dependencies[] = strongarm
+features[ctools][] = strongarm:strongarm:1
+features[features_api][] = api:2
+features[field_instance][] = node-page-body
+features[node][] = page
+features[variable][] = comment_page
+features[variable][] = node_options_page
+features[variable][] = node_submitted_page
+features_exclude[field_base][] = body
+features_exclude[variable][] = pathauto_node_page_pattern

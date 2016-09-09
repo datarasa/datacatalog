@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Data Catalog SEO feature.
+ */
+
+include_once 'data_catalog_seo.features.inc';

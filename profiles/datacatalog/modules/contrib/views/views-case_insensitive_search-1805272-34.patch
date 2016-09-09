@@ -1,0 +1,26 @@
+From be1940c07f727729afe4ab82b31de84b4eda36d6 Mon Sep 17 00:00:00 2001
+From: Michael Nielson <mnielson@phase2technology.com>
+Date: Fri, 12 Dec 2014 10:26:43 -0800
+Subject: [PATCH] Issue #1805272 by azuledu: Combine fields filter
+ case-sensitive search
+
+---
+ handlers/views_handler_filter_combine.inc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/handlers/views_handler_filter_combine.inc b/handlers/views_handler_filter_combine.inc
+index 915924b..fdab4ea 100644
+--- a/handlers/views_handler_filter_combine.inc
++++ b/handlers/views_handler_filter_combine.inc
+@@ -91,7 +91,7 @@ class views_handler_filter_combine extends views_handler_filter_string {
+ 
+   function op_contains($field) {
+     $placeholder = $this->placeholder();
+-    $this->query->add_where_expression($this->options['group'], "$field LIKE $placeholder", array($placeholder => '%' . db_like($this->value) . '%'));
++    $this->query->add_where_expression($this->options['group'], "LOWER($field) LIKE LOWER($placeholder)", array($placeholder => '%' . db_like($this->value) . '%'));
+   }
+ 
+   function op_word($field) {
+-- 
+2.1.1
+

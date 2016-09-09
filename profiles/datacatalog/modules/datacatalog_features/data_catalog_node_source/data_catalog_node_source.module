@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Data Catalog Source feature.
+ */
+
+include_once 'data_catalog_node_source.features.inc';

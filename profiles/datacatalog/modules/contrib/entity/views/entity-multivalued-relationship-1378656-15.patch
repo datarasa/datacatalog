@@ -1,0 +1,189 @@
+From 040947c19f36206e84d20de3d511712eeedf0af0 Mon Sep 17 00:00:00 2001
+From: jsacksick <jonathan.sacksick@gmail.com>
+Date: Mon, 9 Apr 2012 23:34:19 +0200
+Subject: [PATCH] Issue #1378656 by jsacksick: Fix This is a multi-valued relationship, which is currently not supported.
+
+---
+ views/entity_views_example_query.php               |   21 +------
+ .../handlers/entity_views_field_handler_helper.inc |   24 +++++++-
+ .../handlers/entity_views_handler_relationship.inc |   63 ++++++++++++++------
+ 3 files changed, 67 insertions(+), 41 deletions(-)
+
+diff --git a/views/entity_views_example_query.php b/views/entity_views_example_query.php
+index 7e98e2c..adf3cce 100644
+--- a/views/entity_views_example_query.php
++++ b/views/entity_views_example_query.php
+@@ -40,21 +40,8 @@ abstract class entity_views_example_query extends views_plugin_query {
+    *
+    * This is compatible to the get_result_entities() method used by Views.
+    *
+-   * The method is responsible for resolving the relationship and returning the
+-   * entity objects for that relationship. The helper methods
+-   * EntityFieldHandlerHelper::construct_property_selector() and
+-   * EntityFieldHandlerHelper::extract_property_multiple() can be used to do
+-   * this.
+-   *
+    * @param $results
+    *   The results of the query, as returned by this query plugin.
+-   * @param $relationship
+-   *   (optional) A relationship for which the entities should be returned.
+-   * @param $field
+-   *   (optional) The field for which the entity should be returned. This is
+-   *   only needed in case a field is derived via a referenced entity without
+-   *   using a relationship. For example, if the node's field "author:name" is
+-   *   used, the user entity would be returned instead of the node entity.
+    *
+    * @return
+    *   A numerically indexed array containing two items: the entity type of
+@@ -63,7 +50,7 @@ abstract class entity_views_example_query extends views_plugin_query {
+    *
+    * @see EntityFieldHandlerHelper::extract_property_multiple()
+    */
+-  public abstract function get_result_entities($results, $relationship = NULL, $field = NULL);
++  public abstract function get_result_entities($results);
+ 
+   /**
+    * Returns the according metadata wrappers for the given query results.
+@@ -73,16 +60,12 @@ abstract class entity_views_example_query extends views_plugin_query {
+    *
+    * @param $results
+    *   The results of the query, as returned by this query plugin.
+-   * @param $relationship
+-   *   (optional) A relationship for which the wrappers should be returned.
+-   * @param $field
+-   *   (optional) The field of which a wrapper should be returned.
+    *
+    * @return
+    *   A numerically indexed array containing two items: the data type of
+    *   the wrappers returned by this method; and the array of retrieved
+    *   EntityMetadataWrapper objects, keyed by the same indexes as the results.
+    */
+-  public abstract function get_result_wrappers($results, $relationship = NULL, $field = NULL);
++  public abstract function get_result_wrappers($results);
+ 
+ }
+diff --git a/views/handlers/entity_views_field_handler_helper.inc b/views/handlers/entity_views_field_handler_helper.inc
+index fcc2b38..9cc65e6 100644
+--- a/views/handlers/entity_views_field_handler_helper.inc
++++ b/views/handlers/entity_views_field_handler_helper.inc
+@@ -143,17 +143,35 @@ class EntityFieldHandlerHelper {
+         return;
+       }
+     }
++    self::get_result_wrappers($handler, $values);
++  }
+ 
+-    if (method_exists($handler->query, 'get_result_wrappers')) {
+-      list($handler->entity_type, $handler->wrappers) = $handler->query->get_result_wrappers($values, $handler->relationship, $handler->real_field);
++  public static function get_result_wrappers($handler, $values) {
++    if ($handler->relationship) {
++      $relationship_handler = $handler->view->relationship[$handler->relationship];
++      $parent_object = $relationship_handler;
+     }
+     else {
+-      list($handler->entity_type, $entities) = $handler->query->get_result_entities($values, $handler->relationship, $handler->real_field);
++      $parent_object = $handler->query;
++    }
++
++    if (method_exists($parent_object, 'get_result_wrappers')) {
++      list($handler->entity_type, $handler->wrappers) = $parent_object->get_result_wrappers($values);
++    }
++    else {
++      list($handler->entity_type, $entities) = $parent_object->get_result_entities($values);
+       $handler->wrappers = array();
+       foreach ($entities as $id => $entity) {
+         $handler->wrappers[$id] = entity_metadata_wrapper($handler->entity_type, $entity);
+       }
+     }
++
++    // If the field handler itself is based on data selection, we need to
++    // extract the proper wrapper.
++    $selector = self::construct_property_selector($handler);
++    if ($pos = strrpos($selector, ':')) {
++      $handler->wrappers = self::extract_property_multiple($handler->wrappers, $selector);
++    }
+   }
+ 
+   /**
+diff --git a/views/handlers/entity_views_handler_relationship.inc b/views/handlers/entity_views_handler_relationship.inc
+index a15c056..2006331 100644
+--- a/views/handlers/entity_views_handler_relationship.inc
++++ b/views/handlers/entity_views_handler_relationship.inc
+@@ -18,25 +18,6 @@
+ class entity_views_handler_relationship extends views_handler_relationship {
+ 
+   /**
+-   * Slightly modify the options form provided by the parent handler.
+-   */
+-  public function options_form(&$form, &$form_state) {
+-    parent::options_form($form, $form_state);
+-    // This won't work with data selector-based relationships, as we only
+-    // inspect those *after* the results are known.
+-    $form['required']['#access'] = FALSE;
+-    // Notify the user of our restrictions regarding lists of entities, if
+-    // appropriate.
+-    if (!empty($this->definition['multiple'])) {
+-      $form['multiple_note'] = array(
+-        '#markup' => t('<strong>Note:</strong> This is a multi-valued relationship, which is currently not supported. ' .
+-            'Only the first related entity will be shown.'),
+-        '#weight' => -5,
+-      );
+-    }
+-  }
+-
+-  /**
+    * Called to implement a relationship in a query.
+    *
+    * As we don't add any data to the query itself, we don't have to do anything
+@@ -48,4 +29,48 @@ class entity_views_handler_relationship extends views_handler_relationship {
+     $this->alias = $this->options['id'];
+   }
+ 
++  public function post_execute(&$values) {
++    // Load the wrappers of the parent.
++    EntityFieldHandlerHelper::get_result_wrappers($this, $values);
++
++    // Process the wrappers to extract the values specific to this relationship.
++    $new_values = array();
++    $new_wrappers = array();
++    foreach ($values as $row_id => $value) {
++      $wrapper = $this->wrappers[$row_id]->{$this->alias};
++
++      if (!empty($this->definition['multiple'])) {
++        // For multiple relationship, duplicate the row for each element
++        // of the relationship.
++        $has_values = FALSE;
++        foreach ($wrapper as $index => $sub_wrapper) {
++          $has_values = TRUE;
++
++          $new_values[] = clone $value;
++          $new_wrappers[] = $sub_wrapper;
++          $this->entity_type = $sub_wrapper->type();
++        }
++
++        if (!$has_values && !empty($this->options['required'])) {
++          // If the relationship is not required, just leave the original
++          // row where it is.
++          $new_values[] = $value;
++          $new_wrappers[] = NULL;
++        }
++      }
++      else {
++        $new_values[] = $value;
++        $new_wrappers[] = $wrapper;
++        $this->entity_type = $wrapper->type();
++      }
++    }
++
++    $values = $new_values;
++    $this->wrappers = $new_wrappers;
++  }
++
++  public function get_result_wrappers($values) {
++    return array($this->entity_type, $this->wrappers);
++  }
++
+ }
+-- 
+1.7.2.5
+

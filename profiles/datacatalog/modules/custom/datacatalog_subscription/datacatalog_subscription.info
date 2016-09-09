@@ -1,0 +1,9 @@
+name = Datacatalog Subscription
+description = To have customize subscription links. 
+core = 7.x
+package = Datacatalog
+version = 7.x
+
+files[] = datacatalog_subscription.module
+files[] = datacatalog_subscription.install
+

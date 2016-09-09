@@ -1,0 +1,10 @@
+name = Data Catalog Services
+core = 7.x
+package = Configuration
+dependencies[] = ctools
+dependencies[] = rest_server
+dependencies[] = services
+dependencies[] = services_basic_auth
+features[ctools][] = services:services:3
+features[features_api][] = api:2
+features[services_endpoint][] = datacatalog

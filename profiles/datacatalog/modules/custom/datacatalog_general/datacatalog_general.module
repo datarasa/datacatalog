@@ -1,0 +1,265 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Module implementing form alter for searh blocks, group node, views exposed filters.
+ */
+ 
+/**
+ * Implements hook_form_alter().
+ */
+function datacatalog_general_form_alter(&$form, $form_state, $form_id) {
+  if ($form_id == 'search_block_form') {
+    unset($form['search_block_form']['#title']);
+    $form['search_block_form']['#title_display'] = 'invisible';
+    $form['actions']['submit']['#attributes']['value'][] = '';
+    $form['search_block_form']['#attributes'] = array('placeholder' => 'Search...', 'onfocus' => "if (this.placeholder == 'Search...') {this.placeholder = '';}");
+  }
+  if ($form_id == 'group_node_form') {
+    $form['og_group_ref']['#access'] = FALSE;
+  }
+  if ($form_id == 'views_exposed_form') {
+    if ($form['#id'] == 'views-exposed-form-wiki-page-page-1') {
+         $form['combine']['#attributes']['placeholder'] = t('Search in general wiki...');
+         $form['submit']['#value'] = '';
+    }
+    if ($form['#id'] == 'views-exposed-form-Communities-page' || $form['#id'] == 'views-exposed-form-Communities-page-1') {
+       $form['sort_by']['#title'] = '';
+       $new_options = array(''=> t(''));
+       $options = $form['sort_by']['#options'];
+       foreach ($options as $key => $value) {
+         $new_options[$key] = $value;
+       }
+       $form['sort_by']['#options'] = $new_options;
+    }
+  }
+  if ($form_id == 'og_ui_add_users') {
+    $form['og_user']['#title'] = str_replace('Add a group', 'Add a community', $form['og_user']['#title']);
+  }
+  if ($form_id == 'comment_node_source_form') {
+    $form['actions']['submit']['#value'] = t('Add comment');
+  }
+  if ($form_id == 'user_profile_form') {
+	$form['comment_notify_settings']['#access'] = FALSE;
+  }
+  if ($form_id == 'source_node_form') {
+    global $user;
+	$form['field_user_ref']["und"]["#default_value"][0]= $user->uid;
+  }
+  if ($form_id == 'book_node_form' and arg(2)!="edit") {
+    $gid = arg(3);
+    $form['field_community_refrence']['und']['#default_value'] = $gid;
+    //$form['actions']['submit']['#submit'][] = 'datacatalog_general_book_node_form_submit';
+  }
+  if ($form_id == 'business_process_node_form') {
+	//$form['actions']['submit']['#submit'][] = 'datacatalog_general_business_process_node_form_submit';
+  }
+}
+
+function datacatalog_general_book_node_form_submit($form, &$form_state) {
+  //$path = $_SERVER['HTTP_REFERER'];
+  //$form_state['redirect'] = array($path, array('query' => array('qt-community_page' => 4)));
+}
+
+function datacatalog_general_business_process_node_form_submit($form, &$form_state) {
+  //$path = $_SERVER['HTTP_REFERER'];
+  //$form_state['redirect'] = array($path, array('query' => array('qt-community_page' => 1)));
+}
+
+function count_og_members($gid){
+  $query = db_select('users', 'u');
+  $query->condition('u.uid', 0, '<>')
+        ->condition('u.status', 1, '=')
+        ->condition('ogm.state', 1, '=')
+        ->fields('u', array('uid', 'name'))
+        ->join('og_membership', 'ogm', "ogm.gid = :gid AND u.uid = ogm.etid AND ogm.entity_type = 'user'", array(':gid' => $gid));
+  $total_members= $query->execute()->rowCount();
+  return $total_members; 
+}
+
+function count_pend_members($gid){
+  $query = db_select('users', 'u');
+  $query->condition('u.uid', 0, '<>')
+        ->condition('u.status', 1, '=')
+        ->condition('ogm.state', 2, '=')
+        ->fields('u', array('uid', 'name'))
+        ->join('og_membership', 'ogm', "ogm.gid = :gid AND u.uid = ogm.etid AND ogm.entity_type = 'user'", array(':gid' => $gid));
+  $pend_members= $query->execute()->rowCount();
+  return $pend_members; 
+}
+
+function check_if_any_node_found($type) {
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node') 
+        ->entityCondition('bundle', $type) 
+        ->propertyCondition('status', 1) 
+        ->count(); 
+  $result = $query->execute();
+  return $result;
+}
+
+function check_if_any_node_creatd_by_user($type,$uid) {
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node') 
+        ->entityCondition('bundle', $type) 
+        ->propertyCondition('status', 1) 
+        ->count(); 
+  $result = $query->execute();
+  return $result;
+}
+
+
+function datacatalog_general_entity_diff_alter(&$entity_diffs, $context) { 
+  if ($context['entity_type'] = 'node') {
+    if ($context['bundle'] = 'source') {
+      $entity_diffs['field_metadata_fields']['#old'] = join("\n", datacatalog_general_render_field_collection_revision(
+        $context['old_entity']->field_metadata_fields, 
+        array('field_pii', 'field_field_name', 'field_description', 'field_data_type', 'field_field_length','field_data_format', 'field_constraints', 'field_field_tags'),'[field_pii]|[field_field_name]|[field_description]|[field_data_type]|[field_field_length]      [field_data_format]|[field_constraints]|[field_field_tags]'
+      ));
+      $entity_diffs['field_metadata_fields']['#new'] = join("\n", datacatalog_general_render_field_collection_revision(
+        $context['new_entity']->field_metadata_fields, 
+        array('field_pii', 'field_field_name', 'field_description', 'field_data_type', 'field_field_length','field_data_format', 'field_constraints', 'field_field_tags'),'[field_pii]|[field_field_name]|[field_description]|[field_data_type]|[field_field_length]      [field_data_format]|[field_constraints]|[field_field_tags]'
+      ));
+    }
+  }
+}
+
+function datacatalog_general_render_field_collection_revision($field_collection, $field_collection_field_names, $template) {
+  $rendered_items = array();
+  foreach ($field_collection[LANGUAGE_NONE] as $item) {
+    $fcitem = field_collection_item_revision_load($item['revision_id']);
+    // Do nothing if field collection item could not be loaded.
+    if (empty($fcitem)) {
+      continue; 
+    }
+    // Do nothing if field collection fields are empty.
+    foreach($field_collection_field_names as $field_collection_field_name) {
+      if (empty($fcitem->{$field_collection_field_name})) {
+      }
+    }
+    // Take template as the render item base.
+    $render_item = $template;
+	$tname = "";
+    foreach($field_collection_field_names as $field_collection_field_name) {
+      // Replace placeholder in template with field value.
+      // (Assumes fields with only 1 value.)
+	  $t = '';
+	  if($field_collection_field_name=='field_field_tags') {
+        foreach($fcitem->{$field_collection_field_name} as $tids) {
+		  foreach($tids as $tid) {
+			$term = taxonomy_term_load($tid['tid']);
+            $tname .= $term->name.", ";
+		  }
+	    }
+	  }
+	 $tname = rtrim($tname,', ');
+      $render_item = str_replace(
+        '['. $field_collection_field_name . ']', 
+        $fcitem->{$field_collection_field_name}[LANGUAGE_NONE][0]['value'].$tname,
+        $render_item
+      );
+    }
+    $rendered_items[] = $render_item;
+  }
+  return $rendered_items;
+}
+
+function datacatalog_general_views_pre_build(&$view) {
+  global $user;
+  $cuser = $user->name;
+  $usr = user_load(arg(1));
+  $username = $usr->name;
+  if($view->name == 'user_profile_bps_tab') {
+    if($username != $cuser) {
+      unset($view->field['nothing']);
+    }
+  }
+}
+
+/**
+ *  Found this trick on theoleschool.com.
+ *
+ *  Description: Allows the view developer to specify the query
+ *  group by action in the query comments. Great way to force the
+ *  removal of duplicates.
+ *
+ *  Just go into your query comments and type in "groupby:" with
+ *  that colon followed by the field you want to group by.
+ *
+ *  Examples...
+ *  groupby:node.title
+ *  groupby:field_collection_item.item_id
+ *
+ *  Ref-Comment: http://theoleschool.com/comment/496#comment-496
+ *  Ref-Article: http://theoleschool.com/blog/using-hookviewsalter-add-group-statement
+ */
+function datacatalog_general_query_alter(QueryAlterableInterface $query) {
+  if ($query->hasTag('views_group_content')) {
+    static $count;
+	$view =& $query->getMetaData('view');
+	$view->query->options['query_comment'] = 'groupby:node.title';
+	if (strstr($groupby = $view->query->options['query_comment'], 'groupby')) {
+      list($action, $field) = explode(':', $groupby);
+      if (strlen($field) > 0) {
+	    $query->groupBy($field);
+	  }
+	}
+  }
+  if ($query->hasTag('views_community_business_process_tab')) {
+    static $count;
+	$view =& $query->getMetaData('view');
+    $view->query->options['query_comment'] = 'groupby:node_field_data_field_business_process.title';
+	if (strstr($groupby = $view->query->options['query_comment'], 'groupby')) {
+  	  list($action, $field) = explode(':', $groupby);
+  	  if (strlen($field) > 0) {
+	    $query->groupBy($field);
+	  }
+	}
+  }
+  if ($query->hasTag('views_metadata_fields_view')) {
+    static $count;
+	$view =& $query->getMetaData('view');
+	$view->query->options['query_comment'] = 'groupby:field_collection_item.item_id';
+    if (strstr($groupby = $view->query->options['query_comment'], 'groupby')) {
+      list($action, $field) = explode(':', $groupby);
+	  if (strlen($field) > 0) {
+	    $query->groupBy($field);
+	  }
+	}
+  }
+}
+
+function datacatalog_general_entity_property_info_alter(&$info) {
+  $info['user']['properties']['picture_url'] = array(
+    'label' => t('User Picture url'),
+    'type' => "uri",
+    'description' => t("the user profie picture url"),
+    'getter callback' => 'datacatalog_general_get_user_picture'
+    );
+
+  return $info;
+}
+
+function datacatalog_general_get_user_picture($user){
+  $user_picture_url = (isset($user->picture->uri)) ? $user->picture->uri : "";
+  return  $user_picture_url;
+}
+
+function datacatalog_general_search_api_views_query_alter(&$view, &$query) {
+/*  if($view->name == "user_profile_communities_tab_es" || $view->name == "my_communities_es") {
+    global $user;
+    if (in_array('community admin', $user->roles)) {
+	  array_pop($query->where);
+    }
+  }
+*/}
+function count_nodes_ctype_og($cid,$content_type) {
+  $query = db_select('og_membership', 'ogm');
+  $query->condition('ogm.group_type', 'node', '=')
+        ->condition('ogm.entity_type', 'node', '=')
+        ->condition('ogm.gid', $cid, '=')
+        ->fields('ogm', array('id'))
+        ->join('node', 'n', "ogm.etid = n.nid AND n.type = :ctype", array(':ctype' => $content_type));
+  return $query->execute()->rowCount();
+}

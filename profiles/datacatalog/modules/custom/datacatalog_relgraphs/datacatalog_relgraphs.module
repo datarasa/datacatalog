@@ -1,0 +1,355 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Module implementing relationship graphs.
+ */
+
+/**
+ * Implements hook_permission().
+ */
+function datacatalog_relgraphs_permission() {
+  return array (
+    'view network graph' => array (
+      'title' => t ( 'View network graph display' ),
+      'description' => t ( 'Used to view network graph display.' ) 
+    ) 
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function datacatalog_relgraphs_menu() {
+  $items = array ();
+  $items ['relationship/user-source'] = array (
+    'title' => 'User To Source Relationship',
+    'page callback' => 'datacatalog_network_user_source_display',
+    'access arguments' => array (
+      'view network graph' 
+     ) 
+  );
+  $items ['relationship/business-process-source'] = array (
+    'title' => 'Business Process To Source Relationship',
+    'page callback' => 'datacatalog_network_business_process_source_display',
+    'access arguments' => array (
+      'view network graph' 
+    ) 
+  );
+  $items ['relationship/tag-source'] = array (
+    'title' => 'Tag To Source Relationship',
+    'page callback' => 'datacatalog_network_tag_source_display',
+    'access arguments' => array (
+      'view network graph' 
+    ) 
+  );
+  $items ['relationship/tag-tags'] = array (
+    'title' => 'Tag To Tag Relationship',
+    'page callback' => 'datacatalog_network_tag_tag_display',
+    'access arguments' => array (
+      'view network graph' 
+    ) 
+  );
+  $items ['relationship/tag-people'] = array (
+    'title' => 'Tag To People Relationship',
+    'page callback' => 'datacatalog_network_tag_people_display',
+    'access arguments' => array (
+      'view network graph' 
+    ) 
+  );
+  $items ['relationship/people-people'] = array (
+    'title' => 'People To People Relationship',
+    'page callback' => 'datacatalog_network_people_people_display',
+    'access arguments' => array (
+      'view network graph' 
+     ) 
+  );
+  $items ['relationship/general'] = array (
+    'title' => 'General Relationship',
+    'page callback' => 'datacatalog_network_general_rel_display',
+    'access arguments' => array (
+      'view network graph' 
+    ) 
+  );
+//   $items ['relationship/console'] = array (
+//     'title' => 'Relationship Graph Console',
+//     'page callback' => 'datacatalog_general_rel_display',
+//     'access arguments' => array (
+//       'view network graph' 
+//     ) 
+//   );
+  $items ['relationship/get-console-data'] = array (
+    'page callback' => 'datacatalog_general_rel_getdata',
+    'access arguments' => array (
+      'access content' 
+    ),
+    'page arguments' => array (),
+    'type' => MENU_NORMAL_ITEM 
+  );
+  $items ['load-members'] = array (
+    'page callback' => 'load_members',
+    'access arguments' => array (
+      'view network graph' 
+     ),
+    'page arguments' => array (
+      1 
+    ),
+   'type' => MENU_CALLBACK 
+  );
+  $items ['check-if-busns-prcs-nds-fnd'] = array (
+    'page callback' => 'check_if_busns_prcs_nds_fnd_func',
+    'access arguments' => array (
+      'view network graph' 
+     ),
+    'page arguments' => array (
+      1 
+    ),
+    'type' => MENU_CALLBACK 
+  );
+  $items ['check-if-tgs-fnd'] = array (
+    'page callback' => 'check_if_tgs_fnd_func',
+    'access arguments' => array (
+      'view network graph' 
+     ),
+    'page arguments' => array (
+      1 
+     ),
+    'type' => MENU_CALLBACK 
+  );
+  return $items;
+}
+function datacatalog_relgraphs_theme() {
+  return array (
+    'datacatalog_network_user_source_view' => array (
+      'template' => 'datacatalog_network_user_source_view' 
+    ),
+    'datacatalog_network_business_process_source_view' => array (
+      'template' => 'datacatalog_network_business_process_source_view' 
+    ),
+    'datacatalog_network_tag_source_view' => array (
+      'template' => 'datacatalog_network_tag_source_view' 
+    ),
+    'datacatalog_network_tag_tag_view' => array (
+      'template' => 'datacatalog_network_tag_tag_view' 
+    ),
+    'datacatalog_network_tag_people_view' => array (
+      'template' => 'datacatalog_network_tag_people_view' 
+    ),
+    'datacatalog_network_people_people_view' => array (
+      'template' => 'datacatalog_network_people_people_view'  
+    ),
+   'datacatalog_network_general_rel_view' => array (
+     'template' => 'datacatalog_network_general_rel_view' 
+   ),
+//    'datacatalog_general_rel_view' => array (
+//      'template' => 'datacatalog_general_rel_view' 
+//    ) 
+  );
+}
+
+function datacatalog_network_user_source_display() {
+  return theme ( 'datacatalog_network_user_source_view' );
+}
+
+function datacatalog_network_business_process_source_display() {
+  return theme ( 'datacatalog_network_business_process_source_view' );
+}
+
+function datacatalog_network_tag_source_display() {
+  return theme ( 'datacatalog_network_tag_source_view' );
+}
+
+function datacatalog_network_tag_tag_display() {
+  return theme ( 'datacatalog_network_tag_tag_view' );
+}
+
+function datacatalog_network_tag_people_display() {
+  return theme ( 'datacatalog_network_tag_people_view' );
+}
+
+function datacatalog_network_people_people_display() {
+  return theme ( 'datacatalog_network_people_people_view' );
+}
+
+function datacatalog_network_general_rel_display() {
+  return theme ( 'datacatalog_network_general_rel_view' );
+}
+
+// function datacatalog_general_rel_display() {
+//   return theme ( 'datacatalog_general_rel_view' );
+// }
+
+function load_members() {
+  if (isset ( $_GET ['srch'] )) {
+    $srch = $_GET ['srch'];
+	$group_members = _get_users_in_group ( $srch );
+	$linksArr = array ();
+	if (! empty ( $group_members )) {
+	  $documentCounter = 1;
+	  foreach ( $group_members as $member ) {
+	    $user = user_load ( $member->uid );
+		$linksArr [$documentCounter] ['value'] = $user->name;
+		$linksArr [$documentCounter] ['type'] = 'person';
+		$documentCounter ++;
+	  }
+    }
+	echo json_encode ( $linksArr );
+	exit();
+  }
+}
+
+function _get_users_in_group($srch) {
+  $query = db_select ( 'users', 'u' );
+  $query->condition ( 'u.uid', 0, '<>' )->condition ( 'u.status', 1, '=' )->condition ( 'u.name', '%' . db_like ( $srch ) . '%', 'LIKE' )->fields ( 'u', array(
+    'uid',
+	'name' 
+  ));
+  return $query->execute ();
+}
+
+function get_nodes_in_group($uid, $type) {
+  $query = db_select ( 'node', 'n' );
+  $query->fields ( 'n', array (
+    'nid',
+	'title' 
+  ) )->condition ( db_and ()->condition ( 'n.type', $type )->condition ( 'n.uid', $uid, '=' ) )->orderBy ( 'n.title', 'ASC' );
+  $result = $query->execute ();
+  return $result;
+}
+
+function check_if_busns_prcs_nds_fnd_func() {
+  if (isset ( $_GET ['srch'] )) {
+    $srch = $_GET ['srch'];
+	$busns_prcs_nds = _get_busns_prcs_nds_fnd ( $srch );
+	$linksArr = array ();
+	if (! empty ( $busns_prcs_nds )) {
+	  $documentCounter = 1;
+	  foreach ( $busns_prcs_nds as $busns_prcs_nd ) {
+	    $linksArr [$documentCounter] ['value'] = $busns_prcs_nd->title;
+		$linksArr [$documentCounter] ['type'] = 'busns_node';
+		$documentCounter ++;
+	  }
+	}
+	echo json_encode ( $linksArr );
+	exit();
+  }
+}
+
+function _get_busns_prcs_nds_fnd($srch) {
+  $query = db_select ( "field_data_field_business_process", "fdfbp" );
+  $query->leftjoin ( 'node', 'nd', " nd.nid = fdfbp.field_business_process_target_id" );
+  $query->condition ( "nd.status", 1, "=" )->condition ( 'nd.title', '%' . db_like ( $srch ) . '%', 'LIKE' )->distinct ()->fields ( "nd", array (
+    "nid",
+    "title" 
+  ));
+  $result = $query->execute ();
+  return $result;
+}
+
+function get_nid_by_title($type, $title) {
+  $row = db_query ( 'SELECT nid FROM {node} WHERE type = :mytype and title = :mytitle', array (
+    ':mytype' => $type,
+    ':mytitle' => $title 
+  ))->fetchField ();
+  return $row;
+}
+
+function _get_sources_of_business_process_node($bp_nid) {
+  $query = db_select ( "field_data_field_business_process", "fdfbp" );
+  $query->leftjoin ( 'node', 'nd', " nd.nid = fdfbp.entity_id" );
+  $query->condition ( "nd.status", 1, "=" )->condition ( 'fdfbp.field_business_process_target_id', $bp_nid, '=' )->fields ( "nd", array (
+    "nid",
+	"title" 
+  ));
+  $result = $query->execute ();
+  return $result;
+}
+
+function check_if_tgs_fnd_func() {
+  if (isset ( $_GET ['srch'] )) {
+    $srch = $_GET ['srch'];
+    $tgs = _get_tgs_fnd ( $srch );
+    $linksArr = array ();
+    if (! empty ( $tgs )) {
+      $documentCounter = 1;
+      foreach ( $tgs as $tg ) {
+        $linksArr [$documentCounter] ['value'] = $tg->name;
+        $linksArr [$documentCounter] ['type'] = 'tg';
+        $documentCounter ++;
+      }
+    }
+    echo json_encode ( $linksArr );
+	exit();
+  }
+}
+
+function _get_tgs_fnd($srch) {
+  $query = db_select ( "field_data_field_tags_term", "fdftt" );
+  $query->leftjoin ( 'taxonomy_term_data', 'ttd', "ttd.tid = fdftt.field_tags_term_tid" );
+  $query->condition ( 'ttd.name', '%' . db_like ( $srch ) . '%', 'LIKE' )->distinct ()->fields ( "ttd", array (
+	"tid",
+	"name" 
+  ));
+  $result = $query->execute ();
+  return $result;
+}
+
+function _get_sources_of_tag($tid) {
+  $query = db_select ( "field_data_field_tags_term", "fdftt" );
+  $query->leftjoin ( 'node', 'nd', " nd.nid = fdftt.entity_id" );
+  $query->condition ( "nd.status", 1, "=" )->condition ( 'fdftt.field_tags_term_tid', $tid, '=' )->fields ( "nd", array (
+    "nid",
+	"title" 
+  ));
+  $result = $query->execute ();
+  return $result;
+}
+
+function _get_source_gids($nid) {
+  $g_nds = array ();
+  $node = node_load ( $nid );
+  foreach ( og_get_entity_groups ( 'node', $node ) as $entity_type => $og_memberships ) {
+    foreach ( $og_memberships as $membership_id => $entity_id ) {
+      if ($entity_type == 'node') {
+        $group_node = node_load ( $entity_id );
+        $g_nds [$group_node->nid] = $group_node->title;
+      }
+    }
+  }
+  return $g_nds;
+}
+
+function datacatalog_relgraphs_preprocess_page(&$variables) {
+  $mod_path = drupal_get_path ( 'module', 'datacatalog_relgraphs' );
+  if (arg ( 0 ) == "relationship" || arg ( 0 ) == "user") {
+    drupal_add_js ( $mod_path . '/js/d3.js' );
+    drupal_add_css ( $mod_path . '/css/graphstyle.css' );
+    drupal_add_css ( $mod_path . '/css/jquery-ui.css' );
+    drupal_add_library ( 'system', 'ui.slider' );
+    drupal_add_library ( 'system', 'ui.autocomplete' );
+    drupal_add_js ( $mod_path . '/js/zoom_slider_custom.js' );
+  }
+}
+
+function datacatalog_general_rel_getdata(){
+  if(isset($_POST)){
+    $ids = $_POST['ids'];
+    $statement = "MATCH a -[r]- b WHERE id(a) IN[".$ids."] AND id(b) IN[".$ids."]  RETURN r";
+    $data_query = '{"statements":[{"statement":"'.$statement.'","resultDataContents":["row","graph"],"includeStats":true}]};';
+    $curl = curl_init ();
+    curl_setopt ( $curl, CURLOPT_URL, 'http://localhost:7575/db/data/transaction/commit' );
+    curl_setopt ( $curl, CURLOPT_RETURNTRANSFER, 1 );
+    curl_setopt ( $curl, CURLOPT_HTTPHEADER, array (
+     'Accept: application/json; charset=UTF-8',
+     'Content-Type: application/json',
+     'Content-Length: ' . strlen ( $data_query ),
+     'X-Stream: true'
+    ));
+    curl_setopt ( $curl, CURLOPT_CUSTOMREQUEST, "POST" );
+    curl_setopt ( $curl, CURLOPT_POSTFIELDS, $data_query );
+    $data_result = curl_exec ( $curl );
+    echo $data_result;
+    curl_close ( $curl );
+  }
+}

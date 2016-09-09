@@ -1,0 +1,37 @@
+#superfish-1 ul.sf-has-clone-parent .sf-clone-parent{ 
+  display: none !important; 
+}
+.view-display-id-page_2 #actions-wrapper .glyphicon{
+  font-size: 29px !important;
+  display: inline-block;
+  vertical-align: middle;
+}
+#edit-og-group-ref-target-id-wrapper,
+#edit-field-owners-uid-wrapper,
+#edit-field-tags-term-tid-wrapper{
+  clear: both;
+  width: 100%;
+}
+.view-id-sources_list .view-empty{
+  width: auto;
+  border: none;
+}
+.view-id-sources_list thead tr th,
+.view-id-sources_list tbody tr td{
+  padding: 5px;
+}
+.view-id-sources_list thead tr th:last-child,
+.view-id-sources_list tbody tr td:last-child{
+  text-align: center;
+}
+.metadata-download-link{
+  background: url('/sites/all/themes/datacatalog/images/downloadIcon.png') no-repeat;
+  width: 29px;
+  height: 29px;
+  font-size: 0;
+  text-indent: -999px;
+  display: inline-block;
+}
+table.diff tr td.diff-links{
+  display: none;
+}

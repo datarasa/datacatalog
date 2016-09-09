@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Data Catalog Business process feature.
+ */
+
+include_once 'data_catalog_node_business_process.features.inc';

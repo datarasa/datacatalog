@@ -1,0 +1,12 @@
+;$id$
+
+name = Datacatalog General
+description = A General module to perform tweaks 
+core = 7.x
+version = 7.x
+package = Datacatalog
+stylesheets[all][] = js/chosen/chosen.css
+stylesheets[all][] = css/datacatalog_general.css
+;scripts[] = js/bootstrap-select.min.js
+;scripts[] = js/datacatalog_general.js
+

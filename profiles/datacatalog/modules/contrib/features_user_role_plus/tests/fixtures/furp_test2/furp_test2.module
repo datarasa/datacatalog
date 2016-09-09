@@ -1,0 +1,16 @@
+<?php
+/**
+ * @file
+ * Code for the furp Test2 feature.
+ */
+
+include_once 'furp_test2.features.inc';
+
+/**
+ * Implements hook_system_info_alter().
+ */
+function furp_test2_system_info_alter(&$info, $file, $type) {
+  if ($file->name == 'furp_test2') {
+    $info['hidden'] = FALSE;
+  }
+}

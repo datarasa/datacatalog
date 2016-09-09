@@ -1,0 +1,7 @@
+name = Content Subscriptions Links
+description = Provides additional menu entries and views fields to make subscribing to nodes easier.
+package = "Subscriptions"
+files[] = subscriptions_content_links.module
+files[] = subscriptions_content_links_views_handler_field_node_link.inc
+dependencies[] = subscriptions_content
+core = 7.x

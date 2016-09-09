@@ -1,0 +1,14 @@
+name = Data Catalog Menu
+core = 7.x
+package = Configuration
+dependencies[] = features
+dependencies[] = menu
+features[features_api][] = api:2
+features[menu_custom][] = features
+features[menu_custom][] = main-menu
+features[menu_custom][] = management
+features[menu_custom][] = navigation
+features[menu_custom][] = user-menu
+features[menu_links][] = main-menu_communities:communities
+features[menu_links][] = main-menu_groups:groups
+features[menu_links][] = main-menu_owners-lookup:owners

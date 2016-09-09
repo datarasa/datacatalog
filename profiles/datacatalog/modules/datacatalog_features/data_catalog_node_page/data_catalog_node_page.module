@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Data Catalog Basic page feature.
+ */
+
+include_once 'data_catalog_node_page.features.inc';

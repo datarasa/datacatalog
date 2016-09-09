@@ -1,0 +1,155 @@
+<?php   
+/**
+ * @file
+ * Provides additional menu entries and views fields to make subscribing to nodes easier.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function subscriptions_content_links_menu() {
+  $items = array();
+  $items['node/%node/subscribe/%subscriptions_content_links_security_token'] = array(
+    'title' => 'Subscribe',
+    'page callback' => 'subscriptions_content_links_toggle_status',
+    'page arguments' => array(1),
+    'access callback' => '_subscriptions_content_links_subscribe_access',
+    'access arguments' => array(1, 3),
+    'weight' => 5,
+    'type' => MENU_LOCAL_TASK,
+    'options' => array('attributes' => array('class' => array('subscriptions_content_links-link', 'subscriptions_content_links-subscribe'))),
+  );
+  $items['node/%node/unsubscribe/%subscriptions_content_links_security_token'] = array(
+    'title' => 'Unsubscribe',
+    'page callback' => 'subscriptions_content_links_toggle_status',
+    'page arguments' => array(1),
+    'access callback' => '_subscriptions_content_links_unsubscribe_access',
+    'access arguments' => array(1, 3),
+    'weight' => 5,
+    'type' => MENU_LOCAL_TASK,
+    'options' => array('attributes' => array('class' => array('subscriptions_content_links-link', 'subscriptions_content_links-unsubscribe'))),
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+  );
+  return $items;
+}
+
+/**
+ * Used to append a security token to prevent XSS.
+ *
+ * @see Dynamic argument replacement (wildcard) for hook_menu at
+ *      http://drupal.org/node/109153
+ */
+function subscriptions_content_links_security_token_to_arg($arg, $map, $index) {
+  return drupal_get_token();
+}
+
+/**
+ * Access callback for subscribe action. Only allow access based on permissions
+ * and unsubscribed nodes.
+ */
+function _subscriptions_content_links_subscribe_access($node, $token = FALSE) {
+  if ($token && !drupal_valid_token($token)) {
+    return FALSE;
+  }
+  if (!variable_get('subscriptions_content_links_' . $node->type, TRUE)) {
+    return FALSE;
+  }
+
+  global $user;
+  return (
+      (($node->status || user_access('administer nodes')) && node_access('view', $node))
+      && !empty($node->type)
+      && (!subscriptions_content_type_is_blocked($node->type) || !user_access('subscribe to all content types'))
+      && !subscriptions_get_subscription($user->uid, 'node', 'nid', $node->nid)
+    );
+}
+
+/**
+ * Access callback for unsubscribe action. Only allow access based on permissions
+ * and subscription status to current node.
+ */
+function _subscriptions_content_links_unsubscribe_access($node, $token = FALSE) {
+  if ($token && !drupal_valid_token($token)) {
+    return FALSE;
+  }
+  if (!variable_get('subscriptions_content_links_' . $node->type, TRUE)) {
+    return FALSE;
+  }
+
+  global $user;
+  return (
+      (($node->status || user_access('administer nodes')) && node_access('view', $node))
+      && !empty($node->type)
+      && (!subscriptions_content_type_is_blocked($node->type) || !user_access('subscribe to all content types'))
+      && subscriptions_get_subscription($user->uid, 'node', 'nid', $node->nid)
+    );
+}
+
+/**
+ * Helper function to generate change of status message.
+ */
+function _subscriptions_content_links_get_message($title, $status) {
+  return t($status ? 'Subscribed to "@title"'
+      : 'Unsubscribed from "@title"',
+    array('@title' => $title));
+}
+
+/**
+ * Menu callback for subscribe / unsubscribe content actions.
+ * @param $node a node object
+ */
+function subscriptions_content_links_toggle_status($node) {
+  global $user;
+  $status = 0;
+  if (subscriptions_get_subscription($user->uid, 'node', 'nid', $node->nid)) {
+    db_delete('subscriptions')
+      ->condition('module', 'node')
+      ->condition('field', 'nid')
+      ->condition('value', $node->nid)
+      ->condition('recipient_uid', $user->uid)
+      ->execute();
+  } else {
+    subscriptions_write_subscription('node', 'nid', $node->nid, -1, $user->uid, _subscriptions_get_setting('send_interval', $user), 1, 1);
+    $status = 1;
+  }
+  drupal_set_message(_subscriptions_content_links_get_message($node->title, $status));
+  drupal_goto($_SERVER['HTTP_REFERER']);
+}
+
+/**
+ * Implementation of hook_form_alter()
+ *
+ * allow to use the 'Publishing options' on the edit/add page
+ */
+function subscriptions_content_links_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'node_type_form') {
+    $form['workflow']['subscriptions_content_links'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Enable subscription tab for this node type.'),
+      '#default_value' => variable_get('subscriptions_content_links_' . $form['#node_type']->type, TRUE),
+      '#description' => t('Unchecking this option will disable subscribe and unsubscribe links for this node type.'),
+    );
+  }
+}
+
+/**
+ * Implements hook_views_api()
+ */
+function subscriptions_content_links_views_api() {
+  return array('api' => 3);
+}
+
+/**
+ * Implements hook_views_data_alter() to add items to the node table that are
+ * relevant to subscriptions_content_links.
+ */
+function subscriptions_content_links_views_data_alter(&$data) {
+  // new comments
+  $data['node']['subscriptions_content_links'] = array(
+    'title' => t('Subscribe link'),
+    'help' => t('Display a link to subscribe to the node.'),
+    'field' => array(
+      'handler' => 'subscriptions_content_links_views_handler_field_node_link',
+    ),
+  );
+}

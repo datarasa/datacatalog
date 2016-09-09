@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Data Catalog Panel feature.
+ */
+
+include_once 'data_catalog_node_panel.features.inc';

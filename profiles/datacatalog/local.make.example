@@ -1,0 +1,150 @@
+; datacatalog make file for local development
+core = "7.x"
+api = "2"
+
+projects[drupal][version] = "7.x"
+; include the d.o. profile base
+includes[] = "drupal-org.make"
+
+; +++++ TODO modules without versions +++++
+
+projects[data_catalog_panels][version] = "" ; TODO add version
+projects[data_catalog_panels][subdir] = "custom"
+
+projects[data_catalog_views][version] = "" ; TODO add version
+projects[data_catalog_views][subdir] = "custom"
+
+projects[data_catalog_field_collection][version] = "" ; TODO add version
+projects[data_catalog_field_collection][subdir] = "custom"
+
+projects[data_catalog_fields][version] = "" ; TODO add version
+projects[data_catalog_fields][subdir] = "custom"
+
+projects[data_catalog_media][version] = "" ; TODO add version
+projects[data_catalog_media][subdir] = "custom"
+
+projects[data_catalog_menu][version] = "" ; TODO add version
+projects[data_catalog_menu][subdir] = "custom"
+
+projects[data_catalog_rules][version] = "" ; TODO add version
+projects[data_catalog_rules][subdir] = "custom"
+
+projects[data_catalog_seo][version] = "" ; TODO add version
+projects[data_catalog_seo][subdir] = "custom"
+
+projects[data_catalog_services][version] = "" ; TODO add version
+projects[data_catalog_services][subdir] = "custom"
+
+projects[data_catalog_site][version] = "" ; TODO add version
+projects[data_catalog_site][subdir] = "custom"
+
+projects[data_catalog_taxonomy][version] = "" ; TODO add version
+projects[data_catalog_taxonomy][subdir] = "custom"
+
+projects[data_catalog_users][version] = "" ; TODO add version
+projects[data_catalog_users][subdir] = "custom"
+
+projects[data_catalog_node_article][version] = "" ; TODO add version
+projects[data_catalog_node_article][subdir] = "custom"
+
+projects[data_catalog_node_book][version] = "" ; TODO add version
+projects[data_catalog_node_book][subdir] = "custom"
+
+projects[data_catalog_node_business_process][version] = "" ; TODO add version
+projects[data_catalog_node_business_process][subdir] = "custom"
+
+projects[data_catalog_node_group][version] = "" ; TODO add version
+projects[data_catalog_node_group][subdir] = "custom"
+
+projects[data_catalog_node_page][version] = "" ; TODO add version
+projects[data_catalog_node_page][subdir] = "custom"
+
+projects[data_catalog_node_panel][version] = "" ; TODO add version
+projects[data_catalog_node_panel][subdir] = "custom"
+
+projects[data_catalog_node_source][version] = "" ; TODO add version
+projects[data_catalog_node_source][subdir] = "custom"
+
+projects[datacatalog_database_sources][version] = "" ; TODO add version
+projects[datacatalog_database_sources][subdir] = "custom"
+
+projects[datacatalog_import_metadata][version] = "" ; TODO add version
+projects[datacatalog_import_metadata][subdir] = "custom"
+
+projects[datacatalog_sources_import][version] = "" ; TODO add version
+projects[datacatalog_sources_import][subdir] = "custom"
+
+projects[data_catalog_search_api][version] = "" ; TODO add version
+projects[data_catalog_search_api][subdir] = "custom"
+
+projects[data_catalog_message_example_create_comment][version] = "" ; TODO add version
+projects[data_catalog_message_example_create_comment][subdir] = "custom"
+
+projects[data_catalog_message_example_create_node][version] = "" ; TODO add version
+projects[data_catalog_message_example_create_node][subdir] = "custom"
+
+projects[data_catalog_message_example_og_post_in_group][version] = "" ; TODO add version
+projects[data_catalog_message_example_og_post_in_group][subdir] = "custom"
+
+projects[data_catalog_message_example_og_user_membership][version] = "" ; TODO add version
+projects[data_catalog_message_example_og_user_membership][subdir] = "custom"
+
+projects[data_catalog_message_example_user_register][version] = "" ; TODO add version
+projects[data_catalog_message_example_user_register][subdir] = "custom"
+
+projects[data_catalog_og_features_permission_node_group][version] = "" ; TODO add version
+projects[data_catalog_og_features_permission_node_group][subdir] = "custom"
+
+projects[data_catalog_og_membership_type_og_membership_type_og_membership_type_default][version] = "" ; TODO add version
+projects[data_catalog_og_membership_type_og_membership_type_og_membership_type_default][subdir] = "custom"
+
+projects[mymodule][version] = "" ; TODO add version
+projects[mymodule][subdir] = "custom"
+
+; +++++ Libraries +++++
+
+; Elastica
+libraries[Elastica][directory_name] = "Elastica"
+libraries[Elastica][type] = "library"
+libraries[Elastica][destination] = "libraries"
+libraries[Elastica][download][type] = "get"
+libraries[Elastica][download][url] = "" ; TODO add download URI
+
+; hybridauth
+libraries[hybridauth][directory_name] = "hybridauth"
+libraries[hybridauth][type] = "library"
+libraries[hybridauth][destination] = "libraries"
+libraries[hybridauth][download][type] = "get"
+libraries[hybridauth][download][url] = "" ; TODO add download URI
+
+; jscrollpane
+libraries[jscrollpane][directory_name] = "jscrollpane"
+libraries[jscrollpane][type] = "library"
+libraries[jscrollpane][destination] = "libraries"
+libraries[jscrollpane][download][type] = "get"
+libraries[jscrollpane][download][url] = "" ; TODO add download URI
+
+; FooTable
+libraries[FooTable][directory_name] = "FooTable"
+libraries[FooTable][type] = "library"
+libraries[FooTable][destination] = "libraries"
+libraries[FooTable][download][type] = "get"
+libraries[FooTable][download][url] = "" ; TODO add download URI
+
+; jquery-custom-scrollbar
+libraries[jquery-custom-scrollbar][directory_name] = "jquery-custom-scrollbar"
+libraries[jquery-custom-scrollbar][type] = "library"
+libraries[jquery-custom-scrollbar][destination] = "libraries"
+libraries[jquery-custom-scrollbar][download][type] = "get"
+libraries[jquery-custom-scrollbar][download][url] = "" ; TODO add download URI
+
+; +++++ Patches +++++
+
+projects[services_basic_auth][patch][] = "htaccess-fastcgi.patch" ; TODO add path to patch
+
+projects[views][patch][] = "views-case_insensitive_search-1805272-34.patch" ; TODO add path to patch
+
+projects[views][patch][] = "entity-multivalued-relationship-1378656-15.patch" ; TODO add path to patch
+
+projects[footable][patch][] = "0001-Calling-footable-using-Drupal.behaviors.patch" ; TODO add path to patch
+

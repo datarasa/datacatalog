@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the furp Test1 feature.
+ */
+
+include_once 'furp_test1.features.inc';

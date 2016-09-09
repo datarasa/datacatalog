@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Data Catalog Users feature.
+ */
+
+include_once 'data_catalog_users.features.inc';

@@ -1,0 +1,315 @@
+<?php
+// $id$
+
+/**
+ * @file
+ * This module provides Neo4j Integration.
+ */
+require_once __DIR__ .'/lib/bootstrap.php';
+
+/**
+ * Implements hook_menu().
+ */
+function datacatalog_neo4j_menu(){
+  $items['datacatalog-neo4j/process-sources'] = array(
+    'page callback' => 'datacatalog_neo4j_process_sources',
+    'access arguments' => array('access content'),
+    'page arguments' => array(),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_entity_insert().
+ */
+function datacatalog_neo4j_node_insert($node) { 
+  if ($node->type === 'source') {
+    $neo4j = new Neo4jTest();
+    $tentity = $node;
+    $type = $node->type;
+    $src = prepare_entity($tentity, $type);
+    $source = $neo4j->createNode($src);
+    $user = user_load($node->uid);
+    $type = 'user';
+    $author = prepare_entity($user, $type);
+    $target = $neo4j->createNode($author);
+    $neo4j->createRelationship($target, $source, 'Created', array());
+    if(count($node->field_owners['und']) > 0){
+      foreach($node->field_owners['und'] as $owner){
+        $user_loaded = user_load($owner['uid']);
+        $type = 'user';
+        $own = prepare_entity($user_loaded, $type);
+        $owner_node = $neo4j->createNode($own);
+        $neo4j->createRelationship($source, $owner_node, 'Owners', array());
+      }   
+    }
+    if(count($node->og_group_ref['und']) > 0){
+      foreach($node->og_group_ref['und'] as $community){
+        $community_loaded = node_load($community['target_id']);
+        $type = 'community';
+        $community_prep = prepare_entity($community_loaded, $type);
+        $community_node = $neo4j->createNode($community_prep);
+        $neo4j->createRelationship($source, $community_node, 'Belongs_To', array());
+      }   
+    }
+    if(count($node->field_business_process['und']) > 0){
+      foreach($node->field_business_process['und'] as $business_process){
+        $business_process_loaded = node_load($business_process['target_id']);
+        $type = 'business_process';
+        $business_process_prep = prepare_entity($business_process_loaded, $type);
+        $business_process_node = $neo4j->createNode($business_process_prep);
+        $neo4j->createRelationship($source, $business_process_node, 'Source_Business_Process', array());
+      }   
+    }
+    if(count($node->field_tags_term['und']) > 0){
+      $tags_arr = array();
+      foreach($node->field_tags_term['und'] as $tag){
+        $tags_arr[] = $tag['tid'];
+        $tag_loaded = taxonomy_term_load($tag['tid']);
+        $type = 'tags';
+        $tag_prep = prepare_entity($tag_loaded, $type);
+        $tag_node = $neo4j->createNode($tag_prep);
+        $neo4j->createRelationship($source, $tag_node, 'Source_Tags', array());
+      }
+    }
+  }
+}
+
+function datacatalog_neo4j_node_update($node) {
+  if ($node->type === 'source') {
+    $neo4j = new Neo4jTest();
+    $tentity = $node;
+    $type = $node->type;
+    $src = prepare_entity($tentity, $type);
+    $source = $neo4j->createNode($src);
+    delete_node_relationships($source);
+    $user = user_load($node->uid);
+    $type = 'user';
+    $author = prepare_entity($user, $type);
+    $target = $neo4j->createNode($author);
+    $relType = 'Created_By';
+    if(isRelated($target, $source, $relType) == false){
+      $neo4j->createRelationship($target, $source, 'Created', array());
+    }
+    if (count($node->field_owners['und']) > 0) {
+      foreach ($node->field_owners['und'] as $owner) {
+        $user_loaded = user_load($owner['uid']);
+        $type = 'user';
+        $own = prepare_entity($user_loaded, $type);
+        $owner_node = $neo4j->createNode($own);
+        $relType = 'Owners';
+        if(isRelated($source, $owner_node, $relType) == false){
+          $neo4j->createRelationship($source, $owner_node, 'Owners', array());
+        }
+      }
+    }
+    if (count($node->og_group_ref['und']) > 0) {
+      foreach ($node->og_group_ref['und'] as $community) {
+        $community_loaded = node_load($community['target_id']);
+        $type = 'community';
+        $community_prep = prepare_entity($community_loaded, $type);
+        $community_node = $neo4j->createNode($community_prep);
+        $relType = 'Belongs_To';
+        if(isRelated($source, $community_node, $relType) == false){
+          $neo4j->createRelationship($source, $community_node, 'Belongs_To', array());
+        }
+       }
+    }
+    if (count($node->field_business_process['und']) > 0) {
+      foreach ($node->field_business_process['und'] as $business_process) {
+        $business_process_loaded = node_load($business_process['target_id']);
+        $type = 'business_process';
+        $business_process_prep = prepare_entity($business_process_loaded, $type);
+        $business_process_node = $neo4j->createNode($business_process_prep);
+        $relType = 'Source_Business_Process';
+        if(isRelated($source, $business_process_node, $relType) == false){
+          $neo4j->createRelationship($source, $business_process_node, 'Source_Business_Process', array());
+        }
+      }
+    }
+    if (count($node->field_tags_term['und']) > 0) {
+      $tags_arr = array();
+      foreach ($node->field_tags_term['und'] as $tag) {
+        $tags_arr[] = $tag['tid'];
+        $tag_loaded = taxonomy_term_load($tag['tid']);
+        $type = 'tags';
+        $tag_prep = prepare_entity($tag_loaded, $type);
+        $tag_node = $neo4j->createNode($tag_prep);
+        $relType = 'Source_Tags';
+        if(isRelated($source, $tag_node, $relType) == false){
+           $neo4j->createRelationship($source, $tag_node, 'Source_Tags', array());
+        }
+      }
+    }
+  }
+}
+
+function datacatalog_neo4j_node_delete($node) {
+  if ($node->type === 'source') {
+    $neo4j = new Neo4jTest();
+    $tentity = $node;
+    $type = $node->type;
+    $src = prepare_entity($tentity, $type);
+    $source = $neo4j->createNode($src);
+    delete_node_relationships($source);
+    $source->delete();
+  }
+}
+
+function prepare_entity($tentity, $type){
+  if ($type === 'source') {
+    $url = drupal_get_path_alias('node/'.$tentity->nid);
+    return array('nid', 'sources', array('nid' => $tentity->nid, 'title' => $tentity->title,  'url' => $url, 'type' => $type), 'labels' => array('Source'));
+  }
+  if ($type === 'user') {
+    $url = drupal_get_path_alias('user/'.$tentity->uid);
+    return array('uid', 'users', array('uid' => $tentity->uid, 'name' => $tentity->name, 'mail' => $tentity->mail, 'url' => $url, 'type' => $type), 'labels' => array('User'));
+  }
+  if ($type === 'community') {
+    $url = drupal_get_path_alias('node/'.$tentity->nid);
+    return array('nid', 'community', array('nid' => $tentity->nid, 'title' => $tentity->title,  'url' => $url, 'type' => $type), 'labels' => array('Community'));
+  }
+  if ($type === 'business_process') {
+    $url = drupal_get_path_alias('node/'.$tentity->nid);
+    return array('nid', 'business_process', array('nid' => $tentity->nid, 'title' => $tentity->title, 'url' => $url, 'type' => $type), 'labels' => array('Business_Process'));
+  }
+  if ($type === 'tags') {
+    $url = drupal_get_path_alias('term/'.$tentity->tid);
+    return array('tid', 'tags', array('tid' => $tentity->tid, 'name' => $tentity->name, 'url' => $url, 'type' => $type), 'labels' => array('Tags'));
+  }
+}
+
+function relate_tags($tag_id, $index, $tags_id_arr, $source_node){
+  $neo4j = new Neo4jTest(); 
+  $sNodeId = $source_node->getId();
+  $source_tag_loaded = taxonomy_term_load($tag_id);
+  $type = 'tags';
+  $source_tag_prep = prepare_entity($source_tag_loaded, $type);
+  $source_tag_node = $neo4j->createNode($source_tag_prep);
+  foreach($tags_id_arr as $tags_id){
+    if($tag_id == $tags_id){
+      continue;
+    }
+    $target_tag_loaded = taxonomy_term_load($tags_id);
+    $type = 'tags';
+    $target_tag_prep = prepare_entity($target_tag_loaded, $type);
+    $target_tag_node = $neo4j->createNode($target_tag_prep);
+    $relType = 'Tags_To_Tags';
+    if(isRelatedTags($source_tag_node, $target_tag_node, $relType, $sNodeId) == false){
+      $neo4j->createRelationship($source_tag_node, $target_tag_node, 'Tags_To_Tags', array('source_id' => $sNodeId));
+    }
+  }
+}
+
+function unrelate_tags($tag_id, $source_node){
+  $neo4j = new Neo4jTest(); 
+  $sNodeId = $source_node->getId();
+  $source_tag_loaded = taxonomy_term_load($tag_id);
+  $type = 'tags';
+  $source_tag_prep = prepare_entity($source_tag_loaded, $type);
+  $source_tag_node = $neo4j->createNode($source_tag_prep);
+  $sourceRelationships = $source_tag_node->getRelationships();
+  foreach($sourceRelationships as $sRel){
+    $sRelType = $sRel->getType();
+    $sRelProp = $sRel->getProperties();
+    $endNodeId = $sRel->getEndNode()->getId();
+    if($sRelType == 'Tags_To_Tags' && $sRelProp['source_id'] == $sNodeId){
+      $sRel->delete();
+    }
+  }
+}
+
+function isRelated($nodeA, $nodeB, $relationType){
+  $targetNodeId = $nodeB->getId();
+  $sourceRelationships = $nodeA->getRelationships();
+  foreach($sourceRelationships as $sRel){
+    $sRelType = $sRel->getType();
+    $sRelProp = $sRel->getProperties();
+    $endNodeId = $sRel->getEndNode()->getId();
+    if($sRelType == $relationType && $targetNodeId == $endNodeId){
+      return true;
+    }
+  }
+  return false;
+}
+
+function isRelatedTags($nodeA, $nodeB, $relationType, $sourceNodeId){
+  $targetNodeId = $nodeB->getId();
+  $sourceRelationships = $nodeA->getRelationships();
+  foreach($sourceRelationships as $sRel){
+    $sRelType = $sRel->getType();
+    $sRelProp = $sRel->getProperties();
+    $endNodeId = $sRel->getEndNode()->getId();
+    if($sRelType == $relationType && $targetNodeId == $endNodeId && $sRelProp['source_id'] == $sourceNodeId){
+      return true;
+    }
+  }
+  return false;
+}
+
+function delete_node_relationships($neo4jnode){
+  $neo4j = new Neo4jTest(); 
+  $sourceRelationships = $neo4jnode->getRelationships();
+  foreach($sourceRelationships as $sRel){
+    $sRel->delete();
+  }
+}
+
+function datacatalog_neo4j_process_sources(){
+  $type = "source"; 
+  $nodes = node_load_multiple(array(), array('type' => $type)); 
+  $n = 1; 
+  foreach($nodes as $node){
+    echo $n.' out of '.count($nodes)."<br>";
+    $neo4j = new Neo4jTest();
+    $tentity = $node;
+    $type = $node->type;
+    $src = prepare_entity($tentity, $type);
+    $source = $neo4j->createNode($src);
+    $user = user_load($node->uid);
+    $type = 'user';
+    $author = prepare_entity($user, $type);
+    $target = $neo4j->createNode($author);
+    $neo4j->createRelationship($target, $source, 'Created', array());
+    if(count($node->field_owners['und']) > 0){
+      foreach($node->field_owners['und'] as $owner){
+        $user_loaded = user_load($owner['uid']);
+        $type = 'user';
+        $own = prepare_entity($user_loaded, $type);
+        $owner_node = $neo4j->createNode($own);
+        $neo4j->createRelationship($source, $owner_node, 'Owners', array());
+      }   
+    }
+    if(count($node->og_group_ref['und']) > 0){
+      foreach($node->og_group_ref['und'] as $community){
+        $community_loaded = node_load($community['target_id']);
+        $type = 'community';
+        $community_prep = prepare_entity($community_loaded, $type);
+        $community_node = $neo4j->createNode($community_prep);
+        $neo4j->createRelationship($source, $community_node, 'Belongs_To', array());
+      }   
+    }
+    if(count($node->field_business_process['und']) > 0){
+      foreach($node->field_business_process['und'] as $business_process){
+        $business_process_loaded = node_load($business_process['target_id']);
+        $type = 'business_process';
+        $business_process_prep = prepare_entity($business_process_loaded, $type);
+        $business_process_node = $neo4j->createNode($business_process_prep);
+        $neo4j->createRelationship($source, $business_process_node, 'Source_Business_Process', array());
+      }   
+    }
+    if(count($node->field_tags_term['und']) > 0){
+      $tags_arr = array();
+      foreach($node->field_tags_term['und'] as $tag){
+        $tags_arr[] = $tag['tid'];
+        $tag_loaded = taxonomy_term_load($tag['tid']);
+        $type = 'tags';
+        $tag_prep = prepare_entity($tag_loaded, $type);
+        $tag_node = $neo4j->createNode($tag_prep);
+        $neo4j->createRelationship($source, $tag_node, 'Source_Tags', array());
+      }
+    }
+    $n++;
+  }
+}

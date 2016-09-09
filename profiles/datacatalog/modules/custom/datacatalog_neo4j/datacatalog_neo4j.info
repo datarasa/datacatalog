@@ -1,0 +1,7 @@
+;$id$
+name = Datacatalog Neo4j
+description = A Module for Neo4j Integration.
+package = Datacatalog
+core = 7.x
+files[] = datacatalog_neo4j.module
+

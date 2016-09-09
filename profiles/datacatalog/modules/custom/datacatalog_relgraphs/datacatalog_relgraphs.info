@@ -1,0 +1,7 @@
+;$id$
+
+name = Datacatalog relationship graphs
+description = "This module is used to generate relationship graphs"
+package = Datacatalog
+core = 7.x
+version = 7.x

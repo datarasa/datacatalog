@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Data Catalog Article feature.
+ */
+
+include_once 'data_catalog_node_article.features.inc';

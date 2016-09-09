@@ -1,0 +1,578 @@
+<?php
+// $id$
+
+/**
+ * @file
+ * This module provides blocks implementation.
+ */
+include_once('csvdict.class.php');
+/**
+ * Implements hook_menu().
+ */
+function datacatalog_blocks_menu() {
+  $items = array();
+  $items['datacatalog-blocks/get-members-sources'] = array(
+    'page callback' => 'datacatalog_blocks_members_sources_callback',
+    'access callback' => TRUE,
+    'weight' => 1,
+    'type' => MENU_CALLBACK,
+  );
+  $items['datacatalog-blocks/get-members-sources-by-week'] = array(
+    'page callback' => 'datacatalog_blocks_members_sources_week_callback',
+    'access callback' => TRUE,
+    'weight' => 1,
+    'type' => MENU_CALLBACK,
+  );
+  $items['datacatalog-blocks/get-views-comments'] = array(
+    'page callback' => 'datacatalog_blocks_views_comments_week_callback',
+    'access callback' => TRUE,
+    'weight' => 1,
+    'type' => MENU_CALLBACK,
+  );
+  $items['datacatalog-blocks/find-attribute'] = array(
+    'title' => 'Attribute in other Data Sources',
+    'page callback' => 'datacatalog_blocks_find_attribute_callback',
+    'access arguments' => array('access content'),
+  );
+  $items['datacatalog-blocks/get-members-by-month'] = array(
+    'page callback' => 'datacatalog_blocks_members_by_month_callback',
+    'access arguments' => array('access content'),
+    'access callback' => TRUE,
+    'weight' => 1,
+    'type' => MENU_CALLBACK,
+  );
+  $items['datacatalog-blocks/get-sources-by-month'] = array(
+    'page callback' => 'datacatalog_blocks_sources_by_month_callback',
+    'access arguments' => array('access content'),
+    'access callback' => TRUE,
+    'weight' => 1,
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+function datacatalog_blocks_theme(){
+  return array(
+    'datacatalog_network_business_process_source' => array(
+      'template' => 'datacatalog_network_business_process_source',
+     )
+  );
+}
+
+/**
+ * Implements hook_help().
+ */
+function datacatalog_blocks_help($path, $arg) {
+  if ($path == 'admin/help#datacatalog-blocks') {
+    return t('Datacatalog blocks used for visual & textual presentation of data.');
+  }
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function datacatalog_blocks_block_info() {
+  $blocks = array();
+  $blocks['datacatalog_total_members'] = array(
+    'info' => t('Total Members'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  $blocks['datacatalog_total_posts'] = array(
+    'info' => t('Total Sources'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  $blocks['datacatalog_sources_by_week'] = array(
+    'info' => t('Sources & Members By Week'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  $blocks['datacatalog_sources_members'] = array(
+    'info' => t('Sources & Members'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  $blocks['datacatalog_views_comments'] = array(
+    'info' => t('Latest One Week Comments'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  $blocks['datacatalog_meta_data'] = array(
+    'info' => t('Meta data block'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  $blocks['node_page_subscrptn_button'] = array(
+    'info' => t('Custom subscription button for node page'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  $blocks['breadcrumbs_tree'] = array(
+    'info' => t('Custom breadcrumbs for tree'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  $blocks['contextual_dropdown_links'] = array(
+    'info' => t('Custom Dropdown for Primary tabs links'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  $blocks['custom_user_dropdown'] = array(
+    'info' => t('Custom user drop down menu block'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function datacatalog_blocks_block_view($delta = '') {
+  $block = array();
+  switch ($delta) {
+    case 'datacatalog_total_members':
+      $block = array(
+        'subject' => t('Total members'),
+        'content' => datacatalog_blocks_block_content('datacatalog_total_members'),
+      );
+      break;
+    case 'datacatalog_total_posts':
+      $block = array(
+        'subject' => t('Total sources'),
+        'content' => datacatalog_blocks_block_content('datacatalog_total_posts'),
+      );
+      break;
+    case 'datacatalog_sources_by_week':
+      $block = array(
+        'subject' => t('Sources & members by week'),
+        'content' => datacatalog_blocks_block_content('datacatalog_sources_by_week'),
+      );
+      break;
+    case 'datacatalog_sources_members':
+      $block = array(
+        'subject' => t('Sources & members'),
+        'content' => datacatalog_blocks_block_content('datacatalog_sources_members'),
+      );
+      break;
+    case 'datacatalog_views_comments':
+      $block = array(
+        'subject' => t('Latest one week comments'),
+        'content' => datacatalog_blocks_block_content('datacatalog_views_comments'),
+      );
+      break;
+    case 'datacatalog_meta_data':
+      $block = array(
+        'subject' => t('Meta Data'),
+        'content' => datacatalog_blocks_block_content('datacatalog_meta_data'),
+      );
+      break;
+    case 'node_page_subscrptn_button':
+      $block = array(
+        'subject' => t('Node page custom subscription link'),
+        'content' => datacatalog_blocks_block_content('node_page_subscrptn_button'),
+      );
+      break;
+    case 'custom_user_dropdown':
+      $block = array(
+        'subject' => t('custom site wide drop down menu'),
+        'content' => datacatalog_blocks_block_content('custom_user_dropdown'),
+      );
+      break;
+    case 'breadcrumbs_tree':
+      $block = array(
+        'subject' => t('Tree custom breadcrumbs'),
+        'content' => datacatalog_blocks_block_content('breadcrumbs_tree'),
+      );
+      break;
+    case 'contextual_dropdown_links':
+      $block = array(
+        'subject' => t('Custom Dropdown for Primary tabs links'),
+        'content' => datacatalog_blocks_block_content('contextual_dropdown_links'),
+      );
+      break;
+  }
+  return $block;
+}
+
+function datacatalog_blocks_block_content($blockname) {
+  $output = '';
+  switch ($blockname) {
+    case 'datacatalog_total_members':
+      $output .= '<div id="total-member-img"><img src="' . drupal_get_path('module', 'datacatalog_blocks') . '/images/groups.png"></div>';
+      $members_result = db_select('og_membership', 'ogm')
+          ->distinct()
+          ->fields('ogm', array('etid'))
+          ->condition('ogm.entity_type', 'user')
+          ->execute();
+      $members = $members_result->rowCount();
+      $output .= '<div id="total-member-val"><h4>Total number of members in communities <span>' . $members . '</span></h4></div>';
+      break;
+    case 'datacatalog_total_posts':
+      $output .= '<div id="total-post-img"><img src="' . drupal_get_path('module', 'datacatalog_blocks') . '/images/posts.png"></div>';
+      $sources_result = db_select('node', 'n')
+          ->fields('n', array('title'))
+          ->condition('n.type', 'source', '=')
+          ->execute();
+      $sources = $sources_result->rowCount();
+      $output .= '<div id="total-post-val"><h4>Total number of sources in communities <span>' . $sources . '</span></h4></div>';
+      break;
+    case 'datacatalog_sources_by_week':
+      $output .= '<div id="sources-by-week-containder"><div id="sources-byweekchart" style="height: 300px; width: 100%;"></div></div>';
+      break;
+    case 'datacatalog_sources_members':
+      $output .= '<div id="sources-members-container"><div id="sources-members" style="height: 300px; width: 100%;"></div></div>';
+      break;
+    case 'datacatalog_views_comments':
+      $output .= '<div id="sources-views-comments-container"><div id="sources-views-comments" style="height: 300px; width: 100%;"></div></div>';
+      break;
+    case 'datacatalog_meta_data':
+      $output .= '';
+      if (arg(0) == 'node' && is_numeric(arg(1))) {
+        $nid = arg(1);
+        $node = node_load($nid);
+        $markup = '';
+        if (isset($node->field_csv_file['und'][0]['uri']) && $node->field_csv_file['und'][0]['uri'] != '') {
+          $file_path = $node->field_csv_file['und'][0]['uri'];
+          $file_size = format_size($node->field_csv_file['und'][0]['filesize']);
+          $dir_uri = file_stream_wrapper_get_instance_by_uri($file_path);
+          $file_link = $dir_uri->realpath();
+          $csvfile = file($file_link, FILE_SKIP_EMPTY_LINES);
+          $dict = new csvDict;
+          $dict->processCSV($file_link);
+          $dict->setPrimColumn(0);
+          $dict->isAuto = true;
+          $dataDict = $dict->dataDict;
+          $csv = array_map("str_getcsv", $csvfile);
+          $keys = array_shift($csv);
+          foreach ($csv as $i => $row) {
+            $csv[$i] = array_combine($keys, $row);
+          }
+          $arr = array();
+          foreach ($csv as $key => $val) {
+            foreach ($val as $key2 => $val2) {
+              if ($val2) {
+                $arr[$key2][] = $val2;
+              }
+            }
+          }
+          $markup = '';
+          $markup .= '<div class="row">';
+          $markup .= '<div class="col-md-12 p-0"><h3>CSV file Metadata:</h3></div>';
+          $markup .= '</div>';
+          $markup .= '<div class="row">';
+          $markup .= '<div class="col-md-3 col-sm-3 row-head head1 p-5"><strong>Field name</strong></div><div class="col-md-3 col-sm-3 row-head head2 p-5"><strong>Data Type</strong></div><div class="col-md-3 col-sm-3 row-head head3 p-5"><strong>Records</strong></div><div class="col-md-3 col-sm-3 row-head head4 p-5 align-center"><strong>Field Length</strong></div>';
+          $markup .= '</div>';
+          $r = 0;
+          foreach ($arr as $key3 => $val3) {
+            $data_type = $dataDict[$r]['type'];
+            $data_prop = ($dataDict[$r]['prop'] != '') ? $dataDict[$r]['prop'] : '';
+            $markup .= '<div class="row">';
+            $markup .= '<div class="col-md-3 col-sm-3 col1 attribute p-5"><a href="/datacatalog-blocks/find-attribute?attribute='.$key3.'&cnid='.$nid.'" class="ng-lightbox" cnid=' . $nid . '>' . $key3 . '</a></div>';
+            $markup .= '<div class="col-md-3 col-sm-3 col2  p-5">' . $data_type . '</div>';
+            $markup .= '<div class="col-md-3 col-sm-3 col3 p-5">' . count($val3) . '</div>';
+            $markup .= '<div class="col-md-3 col-sm-3 col4 p-5 align-center">' . $data_prop . '</div>';
+            $markup .= '</div>';
+            $r++;
+          }
+        }
+      }
+      $output .= '<div id="sources-meta-data" class="col-md-12"><div id="sources-meta-data-inner">' . $markup . '</div></div>';
+      break;
+    case 'node_page_subscrptn_button':
+      global $user;
+      $output .= '';
+      $nid = arg(1);
+      $mem_lnk = '';
+      $s_subscrbd = chk_usr_nd_subscrptn($user->uid, $nid);
+      if ($s_subscrbd == 1) {
+        $mem_lnk_txt = "Unsubscribe";
+        $mem_lnk = '<a class="node_custom_src_pg" style="cursor:pointer;" data="unsub_' . $nid . '">' . $mem_lnk_txt . '</a>';
+      }
+      elseif ($s_subscrbd == 0) {
+        $mem_lnk_txt = "Subscribe";
+        $mem_lnk = '<a class="node_custom_src_pg" style="cursor:pointer;" data="sub_' . $nid . '">' . $mem_lnk_txt . '</a>';
+      }
+      $output .= '<div class="mem_lnk">' . $mem_lnk . '</div>';
+      break;
+    case 'custom_user_dropdown':
+      global $user;
+      $image = theme('user_picture', array('account' => $user));
+      $img = '';
+      if(isset($user->picture->uri)){
+        $img = theme('image_style',array('style_name' => 'top_right_user_prof_pic', 'path' => $user->picture->uri));	
+      }else
+      {
+        $img = "";
+      }
+      $output.='<div role="navigation" class="navbar-header  navbar pull-right custom-user-settings">
+  <ul class="nav navbar-nav navbar-right">
+    <li class="dropdown navbar-user">
+	  <a class="dropdown-toggle" href="#" data-toggle="dropdown" data-hover="dropdown">
+        <div class="user-photo">';
+          if($img) {
+		    $output.=$img; 
+		  } else { 
+            $output.='<img src="/sites/default/files/pictures/user-default.png" class="nav-user-photo">';
+          } 
+        $output.='</div>
+        <!--span class="user-info">'.$user->name.'</span-->
+        <i class="glyphicon glyphicon-menu-down user-setting-li-icon""></i>
+      </a>
+     <ul class="dropdown-menu animated fadeInLeft">
+      <li class="arrow"> <a href="/user">
+          <i class="glyphicon icon-user"></i>
+	      '.$user->name.'	
+	    </a>
+        </li>
+       <!--li class="arrow">
+	    <a href="/user">
+          <i class="glyphicon icon-user"></i>
+	      My Profile
+	    </a>
+	   </li-->
+       <li class="arrow">
+	    <a href="/my-communities">
+          <i class="glyphicon glyphicon-screenshot"></i>
+	      My Communities
+	    </a>
+	   </li>
+       <li class="arrow">
+	     <a href="/user/logout">
+           <i class="glyphicon icon-power"></i>
+	       Logout
+	     </a>
+	   </li>
+	 </ul>
+   </li>
+  </ul>
+</div>';
+      break;
+	case 'breadcrumbs_tree':
+      global $user;
+      $output .= '
+	   <div class="cstm_brdcrmbs">
+	   <ul>
+	    <li><a href="'. url('<front>').'">Home</a></li>';
+      if (arg(0)=="node") {
+        $output .= '<li><a href="/communities">Communities</a></li>';
+	    $nid = arg(1);	
+	    $node = node_load($nid);
+	    if ($node->type == "group") {
+          $output .= '<li class="lst">'.$node->title.'</li>';
+	    }elseif ($node->type == "source") {
+	      $src_cmnty = node_load($node->og_group_ref["und"][0]["target_id"]); 
+	      $src_cmnty_alias = drupal_get_path_alias('node/'.$src_cmnty->nid); 
+	      $output .= '<li><a href="/'.$src_cmnty_alias.'">'.$src_cmnty->title.'</a></li>';	
+	      $nids = get_source_parents($node->nid);
+	      if($nids != "") {
+            foreach ($nids as $nid) {
+   		      $node_parent = node_load($nid);	
+		      $alias = drupal_get_path_alias('node/'.$node_parent->nid); 
+			  $output .= '<li><a href="/'.$alias.'">'.$node_parent->title.'</a></li>';	
+	        }
+		    $output .= '<li class="lst">'.$node->title.'</li>';
+		  }else {
+            $output .= '<li class="lst">'.$node->title.'</li>';
+		  }
+	    }
+	  }elseif(arg(0) == 'catalog') {
+        $output .= '<li class="lst">Catalog</li>';		 
+	  }else {
+	    $output .= '<li class="lst">Communities</li>'; 
+	  }
+      $output .= '</ul></div>';
+      break;
+    case 'contextual_dropdown_links':
+      $output .= '';
+      $pages = 'admin/*\n';
+      $current = current_path();
+      if (!drupal_match_path($current, $pages)) {
+        $tabs_links = _datacatalog_blocks_tabs_links();
+        if(count($tabs_links) > 0){ 
+          $output .= '<ul id="contextual-tabs">' ;
+          $output .= '<li class="dropdown btn-group">
+     <a class="dropdown-toggle btn btn-small btn-sm btn-default" id="contextual-dropdown" data-hover="dropdown" href="#" title="Action Links">
+        <i class="glyphicon glyphicon-cog"></i><span>'.t('Configure').'</span>
+      </a>
+      <ul class="dropdown-menu" role="menu" aria-labelledby="contextual-dropdown">' ;
+          foreach ($tabs_links as $id => $link) {
+            if ($link['href'] != $current) {
+              $key = 'link-' . $id; 
+              //$output .=  '<li class="dropdown-column">'.l($link['title'], $link['href'], array('attributes' => array('class' => 'ng-lightbox'))).'</l>';
+              //$output .=  '<li class="dropdown-column">'.l($link['title'], $link['href'], array('attributes' => array('class' => ''))).'</l>';
+	       $output .= '<li class="dropdown-column">'.l($link['title'], $link['href'].'/nojs', array('attributes' => array('class' => array('ctools-use-modal')))).'</li>';
+		//$output.= ' l(t('Add Source'), '/node/add/source/nojs', array('attributes' => array('class' => array('ctools-use-modal btn btn-default'))));';
+            }
+          }
+          $output .= '</ul>
+               </li>
+               </ul>';
+        }
+      }
+      break;
+  }
+  return $output;
+}
+
+function get_source_parents($nid) {
+  $result = db_query("SELECT parent_item_ids from dct_tree_data where nid=".$nid);
+  if ($result->rowCount() > 0) {
+    foreach ($result as $row) {
+	  $nids[] = $row->parent_item_ids;	
+	}
+  }
+  return $nids;
+}
+
+function datacatalog_blocks_members_sources_callback() {
+  $data_points = array();
+  $members_result = db_select('og_membership', 'ogm')
+    ->distinct()
+    ->fields('ogm', array('etid'))
+    ->condition('ogm.entity_type', 'user')
+    ->execute();
+  $members = $members_result->rowCount();
+  $sources_result = db_select('node', 'n')
+    ->fields('n', array('title'))
+    ->condition('n.type', 'source', '=')
+    ->execute();
+  $sources = $sources_result->rowCount();
+  $point = array("y" => $sources, "label" => 'Sources');
+  array_push($data_points, $point);
+  $point = array("y" => $members, "label" => 'Members');
+  array_push($data_points, $point);
+  echo json_encode($data_points, JSON_NUMERIC_CHECK);
+}
+
+function datacatalog_blocks_members_sources_week_callback() {
+  $result = db_query("SELECT COUNT(DISTINCT etid) AS count, DATE_FORMAT(FROM_UNIXTIME(`created`), '%Y-%m-%d') as date FROM og_membership WHERE entity_type = 'user' GROUP BY DATE_FORMAT(FROM_UNIXTIME(`created`), '%Y-%m-%d')");
+  $result2 = db_query("SELECT COUNT(DISTINCT nid) AS count, DATE_FORMAT(FROM_UNIXTIME(`created`), '%Y-%m-%d') as date FROM node WHERE type = 'source' GROUP BY DATE_FORMAT(FROM_UNIXTIME(`created`), '%Y-%m-%d')");
+  $data_points = array();
+  $data_points['members'] = array();
+  $data_points['sources'] = array();
+  foreach ($result as $row) {
+    $point = array("y" => $row->count, "label" => Date('D', strtotime($row->date)));
+    array_push($data_points['members'], $point);
+  }
+  foreach ($result2 as $row2) {
+    $point = array("y" => $row2->count, "label" => Date('D', strtotime($row2->date)));
+    array_push($data_points['sources'], $point);
+  }
+  echo json_encode($data_points, JSON_NUMERIC_CHECK);
+}
+
+function datacatalog_blocks_views_comments_week_callback() {
+  $result = db_query("SELECT count(1) as comments, DATE_FORMAT(FROM_UNIXTIME(`created`), '%Y-%m-%d') as date FROM `comment` where 1 and DATE_FORMAT(FROM_UNIXTIME(`created`), '%Y-%m-%d') > DATE_SUB(NOW(), INTERVAL 1 MONTH) GROUP BY DATE_FORMAT(FROM_UNIXTIME(`created`), '%Y-%m-%d')");
+  $result2 = db_query("SELECT sum(daycount) as views, DATE_FORMAT(FROM_UNIXTIME(`timestamp`), '%Y-%m-%d') as date FROM `node_counter` where 1 and DATE_FORMAT(FROM_UNIXTIME(`timestamp`), '%Y-%m-%d') > DATE_SUB(NOW(), INTERVAL 1 MONTH) GROUP BY DATE_FORMAT(FROM_UNIXTIME(`timestamp`), '%Y-%m-%d')");
+  $data_points = array();
+  $data_points['comments'] = array();
+  $data_points['views'] = array();
+  foreach ($result as $row) {
+    $point = array("x" => $row->date, "y" => $row->comments);
+    array_push($data_points['comments'], $point);
+  }
+  foreach ($result2 as $row2) {
+    $point = array("x" => $row2->date, "y" => $row2->views);
+    array_push($data_points['views'], $point);
+  }
+  echo json_encode($data_points, JSON_NUMERIC_CHECK);
+}
+
+function datacatalog_blocks_find_attribute_callback() {
+  return theme('datacatalog_network_business_process_source'); 
+}
+
+function datacatalog_blocks_members_by_month_callback() {
+  $graph_data = array();
+  $data = array();
+  $min = 0;
+  $max = 0;
+  $all_members = db_query("SELECT COUNT(DISTINCT etid) AS count FROM og_membership WHERE entity_type = 'user'")->fetchAssoc();
+  $member_count = setScale($all_members['count']);
+  $result = db_query("SELECT COUNT(DISTINCT etid) AS count, DATE_FORMAT(FROM_UNIXTIME(`created`), '%m') as month, DATE_FORMAT(FROM_UNIXTIME(`created`), '%Y') as year FROM og_membership WHERE entity_type = 'user' GROUP BY month ORDER BY year ASC, month ASC");
+  $i = 1;
+  if ($result->rowCount() > 0) {
+    foreach ($result as $row) {
+      $tstamp = getTimestamp($row->month, $row->year);
+      $postFix = '000';
+      $point = array($tstamp . $postFix, $row->count);
+      array_push($data, $point);
+      if ($i == 1) {
+        $min = $row->year . ', ' . $row->month . ', ' . '1';
+      }
+      if ($i == $result->rowCount() && $row->month > 0 && $row->month < 12) {
+        $last_day_of_month = date('Y, m, t', strtotime('1' . '-' . ($row->month + 01) . '-' . $row->year));
+        $max = $last_day_of_month;
+      }
+      $i++;
+    }
+  }
+  $graph_data = array('min' => $min, 'max' => $max, 'members_count' => $member_count, 'data' => $data);
+  echo json_encode($graph_data, JSON_NUMERIC_CHECK);
+}
+
+function datacatalog_blocks_sources_by_month_callback() {
+  $graph_data = array();
+  $data = array();
+  $min = 0;
+  $max = 0;
+  $all_source = db_query("SELECT COUNT(DISTINCT etid) AS count FROM og_membership WHERE entity_type = 'node'")->fetchAssoc();
+  $source_count = setScale($all_source['count']);
+  $result = db_query("SELECT COUNT(DISTINCT etid) AS count, DATE_FORMAT(FROM_UNIXTIME(`created`), '%m') as month, DATE_FORMAT(FROM_UNIXTIME(`created`), '%Y') as year FROM og_membership WHERE entity_type = 'node' GROUP BY month ORDER BY year ASC, month ASC");
+  $i = 1;
+  if ($result->rowCount() > 0) {
+    foreach ($result as $row) {
+      $tstamp = getTimestamp($row->month, $row->year);
+      $postFix = '000';
+      $point = array($tstamp . $postFix, $row->count);
+      array_push($data, $point);
+      if ($i == 1) {
+        $min = $row->year . ', ' . $row->month . ', ' . '1';
+      }
+      if ($i == $result->rowCount() && $row->month > 0 && $row->month < 12) {
+        $last_day_of_month = date('Y, m, t', strtotime('1' . '-' . ($row->month + 01) . '-' . $row->year));
+        $max = $last_day_of_month;
+      }
+      $i++;
+    }
+  }
+  $graph_data = array('min' => $min, 'max' => $max, 'source_count' => $source_count, 'data' => $data);
+  echo json_encode($graph_data, JSON_NUMERIC_CHECK);
+}
+
+function getTimestamp($month, $year) {
+  $timestamp = mktime(0, 0, 0, $month, 1, $year);
+  return $timestamp;
+}
+
+function setScale($value) {
+  if ($value % 10 == 0) {
+    return $value;
+  }
+  else {
+    $mod = $value % 10;
+    $newvalue = $value + (10 - $mod);
+    return $newvalue;
+  }
+}
+
+/**
+ * Helper function to create links for the normal tabs
+ */
+function _datacatalog_blocks_tabs_links($new_tabs_links = array()) {
+  static $tabs_links = NULL;
+  if (!isset($tabs_links)) {
+    $local_tasks = menu_local_tasks();
+    $tabs_links = array();
+    foreach($local_tasks['tabs']['output'] as $link) {
+      $tabs_links[] = $link['#link'];
+    }
+  }
+  if (count($new_tabs_links) > 0) {
+    $tabs_links = $new_tabs_links;
+  }
+  return $tabs_links;
+}
+
+/**
+ * Implements hook_preprocess_page().
+ */
+function datacatalog_blocks_preprocess_page(&$variables) {
+  $pages = 'admin/*';
+     $current = current_path();
+     if (!drupal_match_path($current, $pages)) {
+       unset($variables['tabs']['#primary']);
+     }
+}

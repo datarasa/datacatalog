@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Data Catalog Default og membership type feature.
+ */
+
+include_once 'data_catalog_og_membership_type_og_membership_type_og_membership_type_default.features.inc';

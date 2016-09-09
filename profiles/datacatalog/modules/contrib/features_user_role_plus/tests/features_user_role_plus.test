@@ -1,0 +1,254 @@
+<?php
+
+/**
+ * Class FeaturesUserRolePlusTestCase
+ */
+class FeaturesUserRolePlusCreateTestCase extends DrupalWebTestCase {
+  /**
+   * @var string
+   */
+  protected $profile = 'testing';
+
+  /**
+   * A user with permission to administer features, generate features.
+   *
+   * @var object
+   */
+  protected $admin_user;
+
+  /**
+   * Test info.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => t('Create'),
+      'description' => t('Test to create a feature with user_role_plus component.'),
+      'group' => t('Features User Role Plus'),
+    );
+  }
+
+  /**
+   * Set up test.
+   */
+  public function setUp() {
+    parent::setUp(array(
+      'features_user_role_plus'
+    ));
+
+    $this->admin_user = $this->drupalCreateUser(array('administer features', 'generate features', 'manage features'));
+    $this->drupalLogin($this->admin_user);
+  }
+
+  public function testCreate() {
+    $tmp_path = variable_get('file_temporary_path', '/tmp');
+    $edit = array(
+      'name' => 'furp Test1',
+      'module_name' => 'furp_test1',
+      'description' => 'furp Test1',
+      'user_role_plus[sources][selected][anonymous user]' => 1,
+      'generate_path' => $tmp_path,
+      'dependencies[sources][selected][features_user_role_plus]' => 1
+    );
+    $this->drupalPost('admin/structure/features/create', $edit, t('Generate feature'));
+
+    $this->assertText(format_string('Module furp Test1 written to @path', array('@path' => $tmp_path)));
+
+    $module_path = drupal_get_path('module', 'features_user_role_plus');
+
+    $expected_info = drupal_parse_info_file($module_path . '/tests/fixtures/furp_test1/furp_test1._info');
+    $generated_info = drupal_parse_info_file($tmp_path . '/furp_test1/furp_test1.info');
+    unset($generated_info['project path']);
+
+    $this->assertIdentical($expected_info, $generated_info);
+    $this->assertIdentical(
+      file_get_contents($module_path . '/tests/fixtures/furp_test1/furp_test1.features.inc'),
+      file_get_contents($tmp_path . '/furp_test1/furp_test1.features.inc')
+    );
+
+  }
+}
+
+/**
+ * Class FeaturesUserRolePlusTestCase
+ */
+class FeaturesUserRolePlusEnableTestCase extends DrupalWebTestCase {
+  /**
+   * @var string
+   */
+  protected $profile = 'testing';
+
+  /**
+   * A user with permission to administer features, generate features.
+   *
+   * @var object
+   */
+  protected $admin_user;
+
+  /**
+   * Test info.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => t('Enable'),
+      'description' => t('Test to enable a feature with user_role_plus component'),
+      'group' => t('Features User Role Plus'),
+    );
+  }
+
+  /**
+   * Set up test.
+   */
+  public function setUp() {
+    parent::setUp(array(
+      'furp_test2'
+    ));
+
+    $this->admin_user = $this->drupalCreateUser(array('administer features', 'generate features', 'manage features'));
+    $this->drupalLogin($this->admin_user);
+  }
+
+
+  public function testEnable() {
+
+    $role = user_role_load_by_name('new_role');
+    $this->assertTrue($role, 'Feature furp_test2 created new role "new_role"');
+
+    $account = $this->drupalCreateUser();
+    $this->assertFalse(user_has_role($role->rid, $account), 'Test user do not have the new created role "new_role"');
+    $this->assertFalse(user_access('administer features', $account), 'Test user do not have permission "administer features"');
+
+    user_multiple_role_edit(array($account->uid), 'add_role', $role->rid);
+
+    // Needs to reload user so that the role is inside of $user->roles.
+    $account = user_load($account->uid);
+    drupal_static_reset('user_access');
+    $this->assertTrue(user_has_role($role->rid, $account), 'Test user has the new created role "new_role"');
+    $this->assertTrue(user_access('administer features', $account), 'Test user has the permission "administer features"');
+
+    $states = features_get_component_states(array('furp_test2'), FALSE, TRUE);
+    $this->assertTrue($states['furp_test2']['user_role_plus'] === FEATURES_DEFAULT, t('@component state: Default via API.', array('@component' => 'user_role_plus')));
+    $this->drupalGet('admin/structure/features/furp_test2');
+    $this->assertFieldByXPath('//*[@id="features-admin-components"]/div/div/div[2]/div/table/tbody/tr[3]/th[2]/span', t('Default'), t('@component state: Default in UI.', array('@component' => 'user_role_plus')));
+    $this->assertFalse(user_access('administer permissions', $account), 'Test user do not have the permission "administer permissions"');
+
+    user_role_grant_permissions($role->rid, array('administer permissions'));
+
+    $this->assertTrue(user_access('administer permissions', $account), 'Test user has the permission "administer permissions"');
+    $states = features_get_component_states(array('furp_test2'), FALSE, TRUE);
+    $this->assertTrue($states['furp_test2']['user_role_plus'] === FEATURES_OVERRIDDEN, t('@component state: Overridden via API.', array('@component' => 'user_role_plus')));
+
+    $this->drupalGet('admin/structure/features/furp_test2');
+    $this->assertFieldByXPath('//*[@id="features-admin-components"]/div/div/div[2]/div/table/tbody/tr[3]/th[3]/span', t('Overridden'), t('@component state: Overridden in UI.', array('@component' => 'user_role_plus')));
+
+    $this->drupalPost('admin/structure/features/furp_test2', array('revert[user_role_plus]' => 1), t('Revert components'));
+    $this->assertText('Reverted all user_role_plus components for furp_test2.');
+
+    $this->resetAll();
+    $states = features_get_component_states(array('furp_test2'), FALSE, TRUE);
+    $this->assertTrue($states['furp_test2']['user_role_plus'] === FEATURES_DEFAULT, t('@component reverted.', array('@component' => 'user_role_plus')));
+    $this->drupalGet('admin/structure/features/furp_test2');
+    $this->assertFieldByXPath('//*[@id="features-admin-components"]/div/div/div[2]/div/table/tbody/tr[3]/th[2]/span', t('Default'), t('@component state: Default in UI.', array('@component' => 'user_role_plus')));
+    $this->assertFalse(user_access('administer permissions', $account), 'Test user do not have the permission "administer permissions"');
+
+  }
+}
+
+/**
+ * Class FeaturesUserRolePlusTestCase
+ */
+class FeaturesUserRolePlusStalePermissionTestCase extends DrupalWebTestCase {
+  /**
+   * @var string
+   */
+  protected $profile = 'testing';
+
+  /**
+   * A user with permission to administer features, generate features.
+   *
+   * @var object
+   */
+  protected $admin_user;
+
+  /**
+   * Test info.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => t('Stale permission'),
+      'description' => t('Test to check stale permission'),
+      'group' => t('Features User Role Plus'),
+    );
+  }
+
+  /**
+   * Set up test.
+   */
+  public function setUp() {
+    parent::setUp(array(
+      'furp_test3'
+    ));
+
+    $this->admin_user = $this->drupalCreateUser(array('administer features', 'generate features', 'manage features'));
+    $this->drupalLogin($this->admin_user);
+  }
+
+  public function testStalePermission() {
+    $account = $this->admin_user;
+    $account = user_load($account->uid);
+    $role = user_role_load_by_name('new_role3');
+    user_multiple_role_edit(array($account->uid), 'add_role', $role->rid);
+    // Needs to reload user so that the role is inside of $user->roles.
+    $account = user_load($account->uid);
+    drupal_static_reset('user_access');
+
+    $this->assertFalse(user_access('permission_from_feature', $account), 'Test user do not have the stale permission "permission_from_feature"');
+
+    $states = features_get_component_states(array('furp_test3'), FALSE, TRUE);
+    $this->assertTrue($states['furp_test3']['user_role_plus'] === FEATURES_OVERRIDDEN, t('@component state: Overridden via API.', array('@component' => 'user_role_plus')));
+    $this->drupalGet('admin/structure/features/furp_test3');
+    $this->assertFieldByXPath('//*[@id="features-admin-components"]/div/div/div[2]/div/table/tbody/tr[3]/th[3]/span', t('Overridden'), t('@component state: Overridden in UI.', array('@component' => 'user_role_plus')));
+
+    db_query('INSERT INTO {role_permission} (rid,permission,module) VALUES(:rid, :permission,:module)', array(
+      ':rid' => $role->rid,
+      ':permission' => 'permission_from_database',
+      ':module' => 'node'
+    ));
+    drupal_static_reset('user_access');
+    drupal_static_reset('user_role_permissions');
+    $this->assertTrue(user_access('permission_from_database', $account), 'Test user has the stale permission "permission_from_database"');
+
+    $this->drupalGet('admin/structure/features/furp_test3');
+    $this->assertText('No module defines the permission permission_from_database. In default-mode force a feature-revert. In overriden-mode export the feature.');
+
+    $this->drupalPost('admin/structure/features/furp_test3', array('revert[user_role_plus]' => 1), t('Revert components'));
+    $this->assertText('Reverted all user_role_plus components for furp_test3.');
+    $this->assertText('No module defines the permission permission_from_database. In default-mode force a feature-revert. In overriden-mode export the feature.');
+    $this->assertText('Warning in features rebuild of furp_test3. No module defines the permission permission_from_feature.');
+    $this->assertText('Warning in features rebuild of furp_test3. No module defines the permission permission_from_database.');
+
+    variable_set('features_user_role_plus_clear_stale_permissions', TRUE);
+    $this->drupalPost('admin/structure/features/furp_test3', array('revert[user_role_plus]' => 1), t('Revert components'));
+    $this->assertText('Reverted all user_role_plus components for furp_test3.');
+
+    drupal_static_reset('user_access');
+    drupal_static_reset('user_role_permissions');
+    $this->assertFalse(user_access('permission_from_database', $account), 'Test user do not have the stale permission "permission_from_database" after clean-up');
+
+    $this->assertNoText('Warning in features rebuild of furp_test3. No module defines the permission permission_from_database.');
+    $this->drupalGet('admin/structure/features/furp_test3');
+    $this->assertNoText('No module defines the permission permission_from_database. In default-mode force a feature-revert. In overriden-mode export the feature.');
+
+    $tmp_path = variable_get('file_temporary_path', '/tmp');
+    $edit = array(
+      'generate_path' => $tmp_path,
+    );
+    $this->drupalPost('admin/structure/features/furp_test3/recreate', $edit, t('Generate feature'));
+    $this->assertText(format_string('Module furp Test3 written to @path', array('@path' => $tmp_path)));
+
+    $module_path = drupal_get_path('module', 'features_user_role_plus');
+    $this->assertIdentical(
+      file_get_contents($module_path . '/tests/fixtures/furp_test3/furp_test3.features.generated'),
+      file_get_contents($tmp_path . '/furp_test3/furp_test3.features.inc')
+    );
+  }
+}

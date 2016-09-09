@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Data Catalog Example - OG post in group feature.
+ */
+
+include_once 'data_catalog_message_example_og_post_in_group.features.inc';

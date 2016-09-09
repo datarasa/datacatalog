@@ -1,0 +1,13 @@
+;$id$
+
+name = Datacatalog blocks
+description = Datacatalog blocks used for visual & textual presentation of data.
+package = Datacatalog
+core = 7.x
+version = 7.x
+stylesheets[all][] = css/datacatalog_blocks.css
+scripts[] = js/canvasjs.min.js
+scripts[] = js/datacatalog_blocks.js
+
+
+

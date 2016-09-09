@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Data Catalog Site feature.
+ */
+
+include_once 'data_catalog_site.features.inc';

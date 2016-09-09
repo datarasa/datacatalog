@@ -1,0 +1,293 @@
+<?php
+/**
+ * @file
+ * Installation code for Data Catalog.
+ */
+
+/**
+ * Implements hook_install_tasks().
+ */
+function datacatalog_install_tasks() {
+  // Increase maximum function nesting level to prevent install errors.
+  $max_nesting_level = ini_get('xdebug.max_nesting_level');
+  if ($max_nesting_level > 0 && $max_nesting_level <= '200') {
+    ini_set('xdebug.max_nesting_level', 200);
+  }
+
+  // Remove any status messages that might have been set. They are unneeded.
+  drupal_get_messages('status', TRUE);
+  $tasks = array();
+  $current_task = variable_get('install_task', 'done');
+  
+  
+  return $tasks;
+}
+
+/**
+ * Implements hook_install_tasks_alter().
+ */
+function datacatalog_install_tasks_alter(&$tasks, $install_state) {
+  //$tasks['install_finished']['function'] = 'data_catalog_install_finished';
+  $tasks['install_select_profile']['display'] = FALSE;
+  $tasks['install_select_locale']['display'] = FALSE;
+  $tasks['install_select_locale']['run'] = INSTALL_TASK_SKIP;
+  $tasks['install_profile_modules']['display_name'] = st('Install DataCatalog');
+  
+ // The "Welcome" screen needs to come after the first two steps
+  // (profile and language selection), despite the fact that they are disabled.
+  $new_task['install_welcome'] = array(
+    'display' => TRUE,
+    'display_name' => st('Welcome'),
+    'type' => 'form',
+    'run' => isset($install_state['parameters']['welcome']) ? INSTALL_TASK_SKIP : INSTALL_TASK_RUN_IF_REACHED,
+  );
+  $old_tasks = $tasks;
+  $tasks = array_slice($old_tasks, 0, 2) + $new_task + array_slice($old_tasks, 2);
+
+  // Set the installation theme.
+  _datacatalog_set_theme('data_catalog_admin');
+}
+/**
+ * Force-set a theme at any point during the execution of the request.
+ *
+ * Drupal doesn't give us the option to set the theme during the installation
+ * process and forces enable the maintenance theme too early in the request
+ * for us to modify it in a clean way.
+ */
+function _datacatalog_set_theme($target_theme) {
+  if ($GLOBALS['theme'] != $target_theme) {
+    unset($GLOBALS['theme']);
+
+    drupal_static_reset();
+    $GLOBALS['conf']['maintenance_theme'] = $target_theme;
+    _drupal_maintenance_theme();
+  }
+}
+
+/**
+ * Task callback: shows the welcome screen.
+ */
+function install_welcome($form, &$form_state, &$install_state) {
+  drupal_set_title(st('Welcome to DataCatalog'));
+  $message = '<p>' . st('Thank you for choosing Data catalog, a product offered by Orbit Software Solutions.') . '</p>';
+  $eula = '';
+ // $eula = '<p>' . st('Data catalog helps you find the data you need, not just the data you already know. Use Catalog to enrich your analyses by filtering and searching through all of your organization’s data. And Catalog is easy to update: now everyone interested can take advantage of data resources as they become available. ') . '</p>';
+  $items = array();
+ // $dc_link = l("Google's DoubleClick for Publishers (\"DFP\")", "http://www.google.com/dfp/info/sb/index.html", array('attributes' => array('target' => '_blank')));
+  $items[] = st("Data catalog helps you find the data you need, not just the data you already know. Use Catalog to enrich your analysis by filtering and searching through all of your organization’s data. And Catalog is easy to update: now everyone interested can take advantage of data resources as they become available.");
+  $items[] = st('Users work together to register sources, search, filter, tag, comment on, and otherwise describe their data. With Catalog, everyone can see information about where data is and who is associated with it. Your organization will share a centralized repository of metadata and the knowledge that clusters around it.');
+  $items[] = st('To make decisions about your data, you have to understand what you already have and where you have it. Zoom in and filter on sources of interest. Quickly answer questions about redundancy and integrity.');
+  $items[] = st('Licensed under the Apache License, Version 2.0 '.l("View License", "http://www.apache.org/licenses/LICENSE-2.0", array('attributes' => array('target' => '_blank'))));
+  $eula .= theme('item_list', array('items' => $items));
+ // $eula_link = l('Privacy Policy and User Agreement', 'https://marketplace.commerceguys.com/privacy/commerce-kickstart', array('attributes' => array('target' => '_blank')));
+ // $eula .= '<p>' . st('That is it for the main points. The full !policy can be viewed on our website.  Thank you again for choosing Commerce Kickstart!', array('!policy' => $eula_link)) . '</p>';
+  $form = array();
+  $form['welcome_message'] = array(
+    '#markup' => $message,
+  );
+  $form['eula'] = array(
+    '#prefix' => '<div id="eula-installation-welcome">',
+    '#markup' => $eula,
+  );
+  /*$form['eula-accept'] = array(
+    '#title' => st('Privacy Policy and User Agreement'),
+    '#title_display' => 'invisible',
+    '#type' => 'radios',
+    '#default_value' => 1,
+    '#options' => array(
+      1 => st('I agree to the Privacy Policy and User Agreement'),
+      0 => st('I want to opt out and disable content from Commerce Guys'),
+    ),
+    '#suffix' => '</div>',
+  );*/
+  $form['actions'] = array(
+    '#type' => 'actions',
+  );
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => st("Let's Get Started!"),
+    '#weight' => 10,
+  );
+  return $form;
+}
+
+function install_welcome_submit($form, &$form_state) {
+  global $install_state;
+
+  $install_state['parameters']['welcome'] = 'done';
+  $install_state['parameters']['locale'] = 'en';
+  //$install_state['parameters']['use_dfp'] = $form_state['values']['eula-accept'];
+}
+
+/**
+ * Implements hook_install().
+ *
+ * Perform actions to set up the site for this profile.
+ */
+function datacatalog_install() {
+  // Enable some datacatalog blocks.
+  $default_theme = 'datacatalog';
+  $admin_theme = 'seven';
+  // disable all themes
+  db_update('system')
+    ->fields(array('status' => 0))
+    ->condition('type', 'theme')
+    ->execute();
+  // enable $default_theme
+  db_update('system')
+    ->fields(array('status' => 1))
+    ->condition('type', 'theme')
+    ->condition('name', $default_theme)
+    ->execute();
+  // enable $admin_theme
+  db_update('system')
+    ->fields(array('status' => 1))
+    ->condition('type', 'theme')
+    ->condition('name', $admin_theme)
+    ->execute();
+  variable_set('theme_default', $default_theme);
+  variable_set('admin_theme', $admin_theme);
+  // activate admin theme when editing a node
+  variable_set('node_admin_theme', '1');
+  $blocks = array(
+    array(
+      'module' => 'system',
+      'delta' => 'main',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'content',
+      'pages' => '',
+      'cache' => -1,
+    ),
+    array(
+      'module' => 'user',
+      'delta' => 'login',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'sidebar_first',
+      'pages' => '',
+      'cache' => -1,
+    ),
+    array(
+      'module' => 'system',
+      'delta' => 'help',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => -10,
+      'region' => 'content',
+      'pages' => '',
+      'cache' => -1,
+    ),
+    array(
+      'module' => 'system',
+      'delta' => 'main',
+      'theme' => $admin_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'content',
+      'pages' => '',
+      'cache' => -1,
+    ),
+    array(
+      'module' => 'system',
+      'delta' => 'help',
+      'theme' => $admin_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'help',
+      'pages' => '',
+      'cache' => -1,
+    ),
+   array(
+      'module' => 'views',
+      'delta' => 'group_title-block',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => -10,
+      'region' => 'content',
+      'pages' => '',
+      'cache' => -1,
+    ), 
+  );
+  // drop system / user blocks to ensure correct building
+  db_delete('block')->condition('module', 'system')->execute();
+  db_delete('block')->condition('module', 'user')->execute();
+  // add in our blocks defined above
+  $query = db_insert('block')->fields(array('module', 'delta', 'theme', 'status', 'weight', 'region', 'pages', 'cache'));
+  foreach ($blocks as $block) {
+    $query->values($block);
+  }
+  $query->execute();
+  
+  // From shortcut.install, add shortcuts to the default set on install
+  $shortcut_set = shortcut_set_load(SHORTCUT_DEFAULT_SET_NAME);
+  $shortcut_set->links = NULL;
+  $shortcut_set->links = array(
+    array(
+      'link_path' => 'admin/appearance/settings',
+      'link_title' => st('Theme'),
+      'weight' => -17,
+    ),
+  );
+  shortcut_set_save($shortcut_set);// Create a default role for site administrators, with all available permissions assigned.
+  $admin_role = new stdClass();
+  $admin_role->name = 'administrator';
+  $admin_role->weight = 10;
+  user_role_save($admin_role);
+  user_role_grant_permissions($admin_role->rid, array_keys(module_invoke_all('permission')));
+  // Set this as the administrator role.
+  variable_set('user_admin_role', $admin_role->rid);
+
+  // Assign user 1 the "administrator" role.
+  db_insert('users_roles')
+    ->fields(array('uid' => 1, 'rid' => $admin_role->rid))
+    ->execute();
+  // Update the menu router information.
+  menu_rebuild();
+  module_enable(array('data_catalog_blocks'));
+  module_enable(array('data_catalog_site'));
+
+  // revert features to ensure they are all installed
+  $features = array(
+    'alpha_pagination_sample_view',
+    'data_catalog_seo',
+    'data_catalog_taxonomy',
+    'data_catalog_fields',
+    'data_catalog_field_collection',
+    'data_catalog_media',
+    'data_catalog_menu',
+    'message_example',
+    'data_catalog_message_example_create_comment',
+    'data_catalog_message_example_create_node',
+    'message_og_example',
+    'data_catalog_message_example_og_post_in_group',
+    'data_catalog_message_example_og_user_membership',
+    'data_catalog_message_example_user_register',
+    'data_catalog_node_article',
+    'data_catalog_node_book',
+    'data_catalog_node_business_process',
+    'data_catalog_node_group',
+    'data_catalog_node_page',
+    'data_catalog_node_panel',
+    'data_catalog_node_source',
+    'data_catalog_og_features_permission_node_group',
+    'data_catalog_og_membership_type_og_membership_type_og_membership_type_default',
+    'data_catalog_panels',
+    'data_catalog_rules',
+    'data_catalog_search_api',
+    'data_catalog_services',
+    'data_catalog_site',
+    'message_subscribe_ui',
+    'data_catalog_views', 
+    'data_catalog_blocks' 
+  );
+  features_revert($features);
+  // ignore any rebuild messages
+  node_access_needs_rebuild(FALSE);
+  module_enable(array('data_catalog_users'));
+  features_revert($features);
+  // ignore any other install messages
+  drupal_get_messages();
+}
