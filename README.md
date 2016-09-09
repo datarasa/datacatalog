@@ -8,9 +8,13 @@ To make decisions about your data, you have to understand what you already have 
 #Installation
 # 1) Elasticsearch
 Datacatalog need Elastisearch for backend/datastorage so first need to install elastisearch-1.4.4
+
 https://download.elastic.co/elasticsearch/elasticsearch/elasticsearch-1.4.4.tar.gz
+
 after downloading extract it and then 
+
 $ cd /elasticsearch-1.4.4
+
 $ ./bin/elasticsearch &
 
 # 2) Install profile
