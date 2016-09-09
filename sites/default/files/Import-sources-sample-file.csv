@@ -1,0 +1,22 @@
+Title,Source Description,PII,Fieldname,Description,DataType,Length,Dataformat,Constraints,Tags
+World Bank datasets,"Various specialized datasets compiled for World Bank research activities, sorted by topic. Many datasets are in raw unprocessed formats, and are specific in scope and coverage",Yes,id,A action of distributions ,integer,11,,primary,
+,,No,distribution_name,A distributions name object,varchar,255,,,distribution
+,,Yes,distribution_id,A distributions id action,integer,11,,,
+,,No,release_date,A date action,datetime,255,,,
+,,Yes,name,A name object,varchar,255,,,
+,,No,version,Version object,varchar,255,,,
+,,Yes,home_page_url,A home page url object,varchar,255,,,
+,,No,user_forums_url,User forums object,varchar,255,,,"user,forum"
+,,Yes,mailing_lists,A distribution mailing object,varchar,255,,,"mailing,lists"
+,,No,status,A status action,varchar,255,,,
+,,Yes,documentation,Documentation action,varchar,255,,,
+,,No,description,A description object,varchar,255,,,
+,,Yes,logo,A url action logo,varchar,255,,,branding
+The World Bank collection,"The World Bank collection of monthly commodities prices and indices from 1960 to present, updated each month, as presented in the Commodity Price Data (a.k.a. Pink Sheet), published continuously for more than half a century.",Yes,Contry,A country name ,varchar,11,,,
+,,No,Region,A region name,varchar,255,,,country
+,,Yes,Street,A street name,integer,11,,,
+,,No,House No,A date action,datetime,255,,,
+Economic Incentive and Institutional Regime,"109 structural and qualitative variables for 146 countries to measure their performance on four Knowledge Economy pillars: Economic Incentive and Institutional Regime, Education, Innovation, and Information and Communications Technologies.",Yes,countryid,A country id,integer,11,,primary,
+,,No,dis_name,A distributions name,varchar,255,,,distribution
+,,Yes,dist_id,A distributions id,integer,11,,,
+,,No,rel_date,A date action,datetime,255,,,

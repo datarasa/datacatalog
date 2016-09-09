@@ -1,0 +1,5 @@
+country_destination,lat_destination,lng_destination,distance_km,destination_km2,destination_language ,language_levenshtein_distance
+AU,-26.853388,133.27516,15297.744,7741220,eng,0
+CA,62.393303,-96.818146,2828.1333,9984670,eng,0
+DE,51.165707,10.452764,7879.568,357022,deu,72.61
+ES,39.896027,-2.4876945,7730.724,505370,spa,92.25

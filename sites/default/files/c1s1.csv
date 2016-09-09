@@ -1,0 +1,5 @@
+FieldName,DataType,Length,Description,DataFormat,Constraints,Tags
+id,int,11,desc,integer,primary,tags1
+surnamename,varchar,255,desc,varchar,unique,"tags1,tags2"
+Lastname,varchar,255,desc,varchar,unique,"tags1,tags2"
+address,text,,desc,text,unique,"tags1,tags2"

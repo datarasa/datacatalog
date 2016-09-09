@@ -1,0 +1,40 @@
+PII,Fieldname,Description,DataType,Length,Dataformat,Constraints,Tags
+Yes,id,A action of distributions ,integer,11,,primary,
+No,distribution_name,A distributions name object,varchar,255,,,distribution
+Yes,distribution_id,A distributions id action,integer,11,,,
+No,release_date,A date action,datetime,255,,,
+Yes,name,A name object,varchar,255,,,
+No,version,Version object,varchar,255,,,
+Yes,home_page_url,A home page url object,varchar,255,,,
+No,user_forums_url,User forums object,varchar,255,,,"user,forum"
+Yes,mailing_lists,A distribution mailing object,varchar,255,,,"mailing,lists"
+No,status,A status action,varchar,255,,,
+Yes,documentation,Documentation action,varchar,255,,,
+No,description,A description object,varchar,255,,,
+Yes,logo,A url action logo,varchar,255,,,branding
+Yes,id1,A action of distributions ,integer,11,,primary,
+No,distribution_name1,A distributions name object,varchar,255,,,distribution
+Yes,distribution_id1,A distributions id action,integer,11,,,
+No,release_date1,A date action,datetime,255,,,
+Yes,name1,A name object,varchar,255,,,
+No,version1,Version object,varchar,255,,,
+Yes,home_page_url1,A home page url object,varchar,255,,,
+No,user_forums_url1,User forums object,varchar,255,,,"user,forum"
+Yes,mailing_lists1,A distribution mailing object,varchar,255,,,"mailing,lists"
+No,status1,A status action,varchar,255,,,
+Yes,documentation1,Documentation action,varchar,255,,,
+No,description1,A description object,varchar,255,,,
+Yes,logo1,A url action logo,varchar,255,,,branding
+Yes,id2,A action of distributions ,integer,11,,primary,
+No,distribution_name2,A distributions name object,varchar,255,,,distribution
+Yes,distribution_id2,A distributions id action,integer,11,,,
+No,release_date2,A date action,datetime,255,,,
+Yes,name2,A name object,varchar,255,,,
+No,version2,Version object,varchar,255,,,
+Yes,home_page_url2,A home page url object,varchar,255,,,
+No,user_forums_url2,User forums object,varchar,255,,,"user,forum"
+Yes,mailing_lists2,A distribution mailing object,varchar,255,,,"mailing,lists"
+No,status2,A status action,varchar,255,,,
+Yes,documentation2,Documentation action,varchar,255,,,
+No,description2,A description object,varchar,255,,,
+Yes,logo2,A url action logo,varchar,255,,,branding

@@ -1,0 +1,10 @@
+Title,Source Description,PII,Fieldname,Description,DataType,Length,Dataformat,Constraints,Tags
+"Economic, Incentive and, Institutional <!-- This is a comment -->  Regime 40","109 structural and qualitative, variables for 146 countries to measure their performance on four Knowledge Economy pillars: Economic Incentive and Institutional Regime, Education, Innovation, and Information and Communications Technologies.",Yes,countryid,A country id,integer,11,,primary,
+,,No,<tr><th>Name</th><th>City</th><th>Country</th></tr>,A distributions name,varchar,255,,,distribution
+,,Yes,dist_id,A distributions id <!-- This is a comment --> ,integer,11,,,
+,,No,"Ip's do; && lo: si 'at'. 200\, w\\d! ""Ibs"" (of ). Nq? <the> St/Pr um = e  ""qa""...<!--",A date action,datetime,255,,,
+,,Yes,'+-&&|!(){}[]^~*?:/\\',A date action,datetime,255,,,
+,,Yes,. \ + * ? [ ^ ] $ ( ) { } = ! < > | : -,A date action,datetime,255,,,
+,,Yes, = e,A date action,datetime,255,,,
+,,No,…,A date action,datetime,255,,,
+,,No,<!--,A date action,datetime,255,,,

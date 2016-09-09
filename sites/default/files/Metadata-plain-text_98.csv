@@ -1,0 +1,50 @@
+PII,Fieldname,Description,DataType,Length,Dataformat,Constraints,Tags
+Yes,author,Narrowly defined as the originator of any written work.,string,255,,,author
+Yes,category,An entity category.,string,255,,,
+No,id,A unique IRI for the activity.,string,255,,,id
+Yes,link,Links data associated with the Page's URL.,string,255,,,link
+No,name,The name of the user.,string,255,,,name
+Yes,published,Indicates whether the Page is published and visible to non-admins,string,255,,,
+No,rule,A principle action.,string,255,,,
+Yes,source,Source information,string,255,,,
+No,title,The title of the post on which a comment appears.,string,255,,,title
+Yes,updated,Date of last modified property,string,255,,,
+Yes,uri aa,An entity uniform resource identifier.,string,255,,,
+Yes,icon,Thing regarded as a representative symbol.,string,255,,,icon
+No,summary,Presenting the substance in a condensed.,string,255,,,summary
+Yes,activity,A thing that a person or group does or has done.,string,255,,,
+Yes,author,Narrowly defined as the originator of any written work.,string,255,,,alpha
+No,category,An entity category.,string,255,,,beta
+Yes,entry,An entity item written.,string,255,,,
+No,geo,The location from which a post was sent.,string,255,,,geo
+Yes,id,A unique IRI for the activity.,string,255,,,id
+No,link,Links data associated with the Page's URL.,string,255,,,link
+Yes,name,The name of the user.,string,255,,,name
+No,published,Indicates whether the Page is published and visible to non-admins,string,255,,,
+Yes,rule,A principle action.,string,255,,,
+Yes,service,The action of helping.,string,255,,,
+Yes,source,Source information,string,255,,,Toyota 47
+No,subtitle,Content additional information.,string,255,,,
+Yes,title,The title of the post on which a comment appears.,string,255,,,title
+No,updated,Date of last modified property,string,255,,,
+Yes,uri,An entity uniform resource identifier.,string,255,,,
+Yes,activity,A thing that a person or group does or has done.,verb,255,,,
+Yes,author,Narrowly defined as the originator of any written work.,string,255,,,
+No,category,An entity category.,string,255,,,
+Yes,content,The text of an article.,html,255,,,content
+No,icon,Thing regarded as a representative symbol.,string,255,,,icon
+Yes,id,A unique IRI for the activity.,string,255,,,id
+Yes,link,Links data associated with the Page's URL.,string,255,,,link
+Yes,published,Indicates whether the Page is published and visible to non-admins,string,255,,,
+No,rule,A principle action.,string,255,,,
+Yes,service,The action of helping.,string,255,,,
+Yes,source,Source information,string,255,,,
+Yes,statistics,Study of the collection.,string,255,,,
+No,summary,Presenting the substance in a condensed.,html,255,,,
+Yes,title,The title of the post on which a comment appears.,html,255,,,title
+No,updated,Date of last modified property,string,255,,,
+Yes,url,The generic term for all types of names and addresses.,string,255,,,url
+No,updated,Date of last modified property,string,255,,,
+Yes,url,The generic term for all types of names and addresses.,string,255,,,url
+No,url,The generic term for all types of names and addresses.,string,255,,,url
+Yes,url,The generic term for all types of names and addresses.,string,255,,,url
