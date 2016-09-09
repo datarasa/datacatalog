@@ -1,2 +1,0 @@
-# xmeta-client
-xmetadata client
